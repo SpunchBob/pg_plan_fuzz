@@ -1,3 +1,5 @@
 *.o
 *.so
 *.bc
+
+test/result/
