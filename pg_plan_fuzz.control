@@ -1,0 +1,6 @@
+comment             = 'Extension for plan fuzzing'
+default_version     = '1.0.0'
+module_pathname     = '$libdir/pg_plan_fuzz'
+relocatable         = true
+requires            = 'plpgsql'
+superuser           = true
