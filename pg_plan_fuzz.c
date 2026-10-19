@@ -111,7 +111,23 @@ static RelOptInfo *pg_plan_fuzz_join_search(
     int             levels_needed,
     List            *initial_rels
 ) 
-{}
+{
+    RelOptInfo *rel;
+
+    if (prev_join_search)   rel = prev_join_search(
+        root,
+        levels_needed,
+        initial_rels
+    );
+
+    else                    rel = standard_join_search(
+        root, 
+        levels_needed,
+        initial_rels
+    );
+
+    return rel;
+}
 
 static void pg_plan_fuzz_post_parse_anlayze(
     ParseState  *pstate,
@@ -126,7 +142,25 @@ static PlannedStmt *pg_plan_fuzz_planner(
     int             cursorOptions,
     ParamListInfo   boundParams
 ) 
-{}
+{
+    PlannedStmt *result;
+
+    if (prev_planner)   result = prev_planner(
+        parse,
+        query_string,
+        cursorOptions,
+        boundParams
+    );
+
+    else                result = standard_planner(
+        parse, 
+        query_string, 
+        cursorOptions, 
+        boundParams
+    );
+
+    return result;
+}
 
 static void pg_plan_fuzz_set_rel_pathlist(
     PlannerInfo     *root,
