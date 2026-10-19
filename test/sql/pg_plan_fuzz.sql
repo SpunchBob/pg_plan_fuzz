@@ -1,0 +1,1 @@
+LOAD 'pg_plan_fuzz';
