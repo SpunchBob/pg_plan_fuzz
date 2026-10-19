@@ -1,4 +1,5 @@
 
+#include "access/sdir.h"
 #include "postgres.h"
 
 #include "utils/elog.h"
@@ -13,40 +14,43 @@
 #include "nodes/plannodes.h"
 #include "nodes/params.h"
 #include "executor/executor.h"
+#include "nodes/nodes.h"
 
-// #include "access/heapam.h"
-// #include "access/relation.h"
-// #include "catalog/pg_collation.h"
-// #include "catalog/pg_index.h"
-// #include "catalog/pg_proc.h"
-// #include "commands/prepare.h"
-// #include "commands/proclang.h"
-// #include "mb/pg_wchar.h"
-// #include "miscadmin.h"
-// #include "nodes/nodeFuncs.h"
-// #include "optimizer/appendinfo.h"
-// #include "optimizer/clauses.h"
-// #include "optimizer/cost.h"
-// #include "optimizer/geqo.h"
-// #include "optimizer/joininfo.h"
-// #include "optimizer/optimizer.h"
-// #include "optimizer/pathnode.h"
-// #include "optimizer/prep.h"
-// #include "optimizer/restrictinfo.h"
-// #include "parser/parsetree.h"
-// #include "parser/scansup.h"
-// #include "partitioning/partbounds.h"
-// #include "tcop/utility.h"
-// #include "utils/builtins.h"
-// #include "utils/float.h"
-// #include "utils/lsyscache.h"
-// #include "utils/memutils.h"
-// #include "utils/rel.h"
-// #include "utils/snapmgr.h"
-// #include "utils/syscache.h"
-// #include "catalog/pg_class.h"
-// #include "executor/spi.h"
-// #include "catalog/pg_type.h"
+#include <string.h>
+
+#include "access/heapam.h"
+#include "access/relation.h"
+#include "catalog/pg_collation.h"
+#include "catalog/pg_index.h"
+#include "catalog/pg_proc.h"
+#include "commands/prepare.h"
+#include "commands/proclang.h"
+#include "mb/pg_wchar.h"
+#include "miscadmin.h"
+#include "nodes/nodeFuncs.h"
+#include "optimizer/appendinfo.h"
+#include "optimizer/clauses.h"
+#include "optimizer/cost.h"
+#include "optimizer/geqo.h"
+#include "optimizer/joininfo.h"
+#include "optimizer/optimizer.h"
+#include "optimizer/pathnode.h"
+#include "optimizer/prep.h"
+#include "optimizer/restrictinfo.h"
+#include "parser/parsetree.h"
+#include "parser/scansup.h"
+#include "partitioning/partbounds.h"
+#include "tcop/utility.h"
+#include "utils/builtins.h"
+#include "utils/float.h"
+#include "utils/lsyscache.h"
+#include "utils/memutils.h"
+#include "utils/rel.h"
+#include "utils/snapmgr.h"
+#include "utils/syscache.h"
+#include "catalog/pg_class.h"
+#include "executor/spi.h"
+#include "catalog/pg_type.h"
 
 PG_MODULE_MAGIC;
 
@@ -60,6 +64,36 @@ static planner_hook_type                prev_planner = NULL;
 static set_rel_pathlist_hook_type       prev_set_rel_pathlist = NULL;
 static get_relation_info_hook_type      prev_get_relation_info_hook = NULL;
 static ExecutorEnd_hook_type            prev_ExecutorEnd = NULL;
+
+// -----------------------------------------------------------------------------------
+//                          EXT. PROCEDURES - DECLARATIONS
+// -----------------------------------------------------------------------------------
+
+static const char* pg_plan_fuzz_node_type_to_str(int type);
+
+// -----------------------------------------------------------------------------------
+//                          EXT. PROCEDURES - IMPLEMENTATIONS
+// -----------------------------------------------------------------------------------
+
+static const char* pg_plan_fuzz_node_type_to_str(int type)
+{
+    switch (type) {
+        case T_SeqScan:         return "SeqScan";
+        case T_IndexScan:       return "IndexScan";
+        case T_IndexOnlyScan:   return "IndexOnlyScan";
+        case T_BitmapHeapScan:  return "BitmapHeapScan";
+        case T_BitmapIndexScan: return "BitmapIndexScan";
+        case T_HashJoin:        return "HashJoin";
+        case T_NestLoop:        return "NestLoop";
+        case T_MergeJoin:       return "MergeJoin";
+        case T_Sort:            return "Sort";
+        case T_Agg:             return "Agg";
+        case T_Result:          return "Result";
+        case T_Limit:           return "Limit";
+        case T_SubqueryScan:    return "SubqueryScan";
+        default:                return "Other Node";
+    }
+}
 
 // -----------------------------------------------------------------------------------
 //                            HOOKS - STATIC DECLARATIONS
@@ -112,7 +146,9 @@ static RelOptInfo *pg_plan_fuzz_join_search(
     List            *initial_rels
 ) 
 {
-    RelOptInfo *rel;
+    RelOptInfo  *rel;
+    ListCell    *lc;
+    Path        *path;
 
     if (prev_join_search)   rel = prev_join_search(
         root,
@@ -126,6 +162,20 @@ static RelOptInfo *pg_plan_fuzz_join_search(
         initial_rels
     );
 
+    foreach (lc, rel->pathlist) 
+    {
+        path = (Path*)lfirst(lc);
+
+        elog(
+            INFO,
+            "Join node: %s \t-> COST -- %f --",
+            pg_plan_fuzz_node_type_to_str(path->pathtype),
+            path->total_cost
+        );
+
+        path->total_cost -= 5000;
+    }
+
     return rel;
 }
 
@@ -134,7 +184,13 @@ static void pg_plan_fuzz_post_parse_anlayze(
     Query       *query,
     JumbleState *jstate
 ) 
-{}
+{
+    if (prev_post_parse_analyzer_hook)  prev_post_parse_analyzer_hook(
+        pstate,
+        query,
+        jstate
+    );
+}
 
 static PlannedStmt *pg_plan_fuzz_planner(
     Query           *parse,
@@ -168,20 +224,57 @@ static void pg_plan_fuzz_set_rel_pathlist(
     Index           rti,
     RangeTblEntry   *rte
 ) 
-{}
+{
+    ListCell    *lc;
+    Path        *path;
+
+    if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
+        root,
+        rel,
+        rti,
+        rte
+    );
+
+    // Create new index path, because we need to change
+    // some seq scan ( for example first ) and for this
+    // we need index path, to raise seq scan path cost
+    // and decrease index path cost.
+
+    foreach (lc, rel->pathlist) 
+    {
+        path = (Path*)lfirst(lc);
+
+        elog(
+            INFO,
+            "Scan node: %s \t-> COST -- %f --",
+            pg_plan_fuzz_node_type_to_str(path->pathtype),
+            path->total_cost
+        );
+    }
+}
 
 static void pg_plan_fuzz_relation_info_hook(
     PlannerInfo     *root,
-    Oid             relationObjectid,
+    Oid             relationObjectId,
     bool            inhparent, 
     RelOptInfo      *rel
 ) 
-{}
+{
+    if (prev_get_relation_info_hook)    prev_get_relation_info_hook(
+        root,
+        relationObjectId,
+        inhparent,
+        rel
+    );
+}
 
 static void pg_plan_fuzz_ExecutorEnd (
     QueryDesc *queryDesc
 ) 
-{}
+{
+    if (prev_ExecutorEnd)   prev_ExecutorEnd(queryDesc);
+    else                    standard_ExecutorEnd(queryDesc);
+}
 
 void _PG_init(void);
 void _PG_init(void) 
@@ -201,4 +294,3 @@ void _PG_init(void)
     prev_ExecutorEnd                        = ExecutorEnd_hook;
     ExecutorEnd_hook                        = pg_plan_fuzz_ExecutorEnd;
 }
-
