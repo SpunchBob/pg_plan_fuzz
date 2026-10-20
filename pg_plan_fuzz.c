@@ -1,5 +1,3 @@
-
-#include "access/sdir.h"
 #include "postgres.h"
 
 #include "utils/elog.h"
@@ -17,6 +15,8 @@
 #include "nodes/nodes.h"
 
 #include <string.h>
+
+// Other includes from `pg_hint_plan`
 
 #include "access/heapam.h"
 #include "access/relation.h"
@@ -43,8 +43,10 @@
 #include "tcop/utility.h"
 #include "utils/builtins.h"
 #include "utils/float.h"
+#include "utils/guc.h"
 #include "utils/lsyscache.h"
 #include "utils/memutils.h"
+#include "utils/palloc.h"
 #include "utils/rel.h"
 #include "utils/snapmgr.h"
 #include "utils/syscache.h"
@@ -54,9 +56,17 @@
 
 PG_MODULE_MAGIC;
 
-// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+//                                         GUC
+// -----------------------------------------------------------------------------
+
+static bool force_hashjoin      = false;
+static bool force_mergejoin     = false;
+static bool force_nestloop      = false;
+
+// -----------------------------------------------------------------------------
 //                                   HOOKS - VARS
-// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static join_search_hook_type            prev_join_search = NULL;
 static post_parse_analyze_hook_type     prev_post_parse_analyzer_hook = NULL;
@@ -65,15 +75,20 @@ static set_rel_pathlist_hook_type       prev_set_rel_pathlist = NULL;
 static get_relation_info_hook_type      prev_get_relation_info_hook = NULL;
 static ExecutorEnd_hook_type            prev_ExecutorEnd = NULL;
 
-// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - DECLARATIONS
-// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
-static const char* pg_plan_fuzz_node_type_to_str(int type);
+static int          pg_plan_fuzz_set_config_option(
+                    const char* value,
+                    const char* name
+                    );
+static const char*  pg_plan_fuzz_node_type_to_str    (int type);
+static void         pg_plan_fuzz_join_transformation (int type);
 
-// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
-// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static const char* pg_plan_fuzz_node_type_to_str(int type)
 {
@@ -95,9 +110,96 @@ static const char* pg_plan_fuzz_node_type_to_str(int type)
     }
 }
 
-// -----------------------------------------------------------------------------------
+static void pg_plan_fuzz_join_transformation (int type) 
+{
+    switch (type) 
+    {
+        case T_HashJoin: 
+        {
+            pg_plan_fuzz_set_config_option (
+                "enable_nestloop", 
+                "off");
+            pg_plan_fuzz_set_config_option (
+                "enable_mergejoin",
+                "off"
+            );
+        };
+        case T_MergeJoin: 
+        {
+            pg_plan_fuzz_set_config_option (
+                "enable_hashjoin",
+                "off"
+            );
+            pg_plan_fuzz_set_config_option (
+                "enable_nestloop",
+                "off"
+            );
+        }
+        case T_NestLoop: 
+        {
+            pg_plan_fuzz_set_config_option (
+                "enable_hashjoin",
+                "off"
+            );
+            pg_plan_fuzz_set_config_option(
+                "enable_mergejoin",
+                "off"
+            );
+        }
+    }
+}
+
+static int pg_plan_fuzz_set_config_option (
+            const char* name,
+            const char* value
+            ) 
+{
+    int             result; 
+    MemoryContext   ccxt;
+    GucContext      state;
+
+    result  = 0;
+    ccxt    = CurrentMemoryContext;
+    state   = superuser() ? PGC_SUSET : PGC_USERSET;
+
+    PG_TRY();
+    {
+        result = set_config_option(
+            name,
+            value,
+            state,
+            PGC_S_SESSION,
+            GUC_ACTION_SAVE,
+            true,
+            0,
+            false
+        );
+    }
+    PG_CATCH();
+    {
+        ErrorData *errdata;
+
+        MemoryContextSwitchTo(ccxt);
+        errdata = CopyErrorData();
+        FlushErrorState();
+
+        ereport(
+            INFO,
+            (errcode(errdata->sqlerrcode),
+             errmsg("%s", errdata->message),
+             errdata->detail ? errdetail("%s", errdata->hint) : 0)
+            );
+        
+        FreeErrorData(errdata);
+    }
+    PG_END_TRY();
+
+    return result;
+}
+
+// -----------------------------------------------------------------------------
 //                            HOOKS - STATIC DECLARATIONS
-// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static RelOptInfo *pg_plan_fuzz_join_search (
     PlannerInfo *root,
@@ -136,11 +238,11 @@ static void pg_plan_fuzz_ExecutorEnd (
     QueryDesc *queryDesc
 );
 
-// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 //                              HOOKS - IMPLEMENTATIONS
-// -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
-static RelOptInfo *pg_plan_fuzz_join_search(
+static RelOptInfo *pg_plan_fuzz_join_search (
     PlannerInfo     *root,
     int             levels_needed,
     List            *initial_rels
@@ -172,14 +274,12 @@ static RelOptInfo *pg_plan_fuzz_join_search(
             pg_plan_fuzz_node_type_to_str(path->pathtype),
             path->total_cost
         );
-
-        path->total_cost -= 5000;
     }
 
     return rel;
 }
 
-static void pg_plan_fuzz_post_parse_anlayze(
+static void pg_plan_fuzz_post_parse_anlayze (
     ParseState  *pstate,
     Query       *query,
     JumbleState *jstate
@@ -192,7 +292,7 @@ static void pg_plan_fuzz_post_parse_anlayze(
     );
 }
 
-static PlannedStmt *pg_plan_fuzz_planner(
+static PlannedStmt *pg_plan_fuzz_planner (
     Query           *parse,
     const char      *query_string,
     int             cursorOptions,
@@ -218,7 +318,7 @@ static PlannedStmt *pg_plan_fuzz_planner(
     return result;
 }
 
-static void pg_plan_fuzz_set_rel_pathlist(
+static void pg_plan_fuzz_set_rel_pathlist (
     PlannerInfo     *root,
     RelOptInfo      *rel,
     Index           rti,
@@ -253,7 +353,7 @@ static void pg_plan_fuzz_set_rel_pathlist(
     }
 }
 
-static void pg_plan_fuzz_relation_info_hook(
+static void pg_plan_fuzz_relation_info_hook (
     PlannerInfo     *root,
     Oid             relationObjectId,
     bool            inhparent, 
@@ -276,8 +376,8 @@ static void pg_plan_fuzz_ExecutorEnd (
     else                    standard_ExecutorEnd(queryDesc);
 }
 
-void _PG_init(void);
-void _PG_init(void) 
+void _PG_init (void);
+void _PG_init (void) 
 {
     elog(INFO, "Initialized pg_plan_fuzz extension");
 
