@@ -149,6 +149,10 @@ static void pg_plan_fuzz_join_transformation (int type)
     }
 }
 
+// This is function for changing current GUC's state
+// This realization i get from `pg_hint_plan` extension
+// I will use it for enabling hooks in postgresql
+
 static int pg_plan_fuzz_set_config_option (
             const char* name,
             const char* value
@@ -380,6 +384,45 @@ void _PG_init (void);
 void _PG_init (void) 
 {
     elog(INFO, "Initialized pg_plan_fuzz extension");
+
+    DefineCustomBoolVariable(
+        "force_hashjoin", 
+        "Force planner/optimizer to use HashJoin in plan",
+        NULL, 
+        &enable_hashjoin,
+        false,
+        superuser() ? PGC_SUSET : PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
+
+    DefineCustomBoolVariable(
+        "force_mergejoin", 
+        "Force planner/optimizer to use MergeJoin in plan",
+        NULL, 
+        &enable_mergejoin,
+        false,
+        superuser() ? PGC_SUSET : PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
+
+    DefineCustomBoolVariable(
+        "force_nestloop", 
+        "Force planner/optimizer to use NestedLoop in plan",
+        NULL, 
+        &enable_nestloop,
+        false,
+        superuser() ? PGC_SUSET : PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
 
     prev_join_search                        = join_search_hook;
     join_search_hook                        = pg_plan_fuzz_join_search;
