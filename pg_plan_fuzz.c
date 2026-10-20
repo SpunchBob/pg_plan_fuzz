@@ -13,56 +13,59 @@
 #include "nodes/params.h"
 #include "executor/executor.h"
 #include "nodes/nodes.h"
+#include "utils/palloc.h"
+#include "utils/guc.h"
+#include "optimizer/cost.h"
+#include "miscadmin.h"
 
 #include <string.h>
 
 // Other includes from `pg_hint_plan`
 
-#include "access/heapam.h"
-#include "access/relation.h"
-#include "catalog/pg_collation.h"
-#include "catalog/pg_index.h"
-#include "catalog/pg_proc.h"
-#include "commands/prepare.h"
-#include "commands/proclang.h"
-#include "mb/pg_wchar.h"
-#include "miscadmin.h"
-#include "nodes/nodeFuncs.h"
-#include "optimizer/appendinfo.h"
-#include "optimizer/clauses.h"
-#include "optimizer/cost.h"
-#include "optimizer/geqo.h"
-#include "optimizer/joininfo.h"
-#include "optimizer/optimizer.h"
-#include "optimizer/pathnode.h"
-#include "optimizer/prep.h"
-#include "optimizer/restrictinfo.h"
-#include "parser/parsetree.h"
-#include "parser/scansup.h"
-#include "partitioning/partbounds.h"
-#include "tcop/utility.h"
-#include "utils/builtins.h"
-#include "utils/float.h"
-#include "utils/guc.h"
-#include "utils/lsyscache.h"
-#include "utils/memutils.h"
-#include "utils/palloc.h"
-#include "utils/rel.h"
-#include "utils/snapmgr.h"
-#include "utils/syscache.h"
-#include "catalog/pg_class.h"
-#include "executor/spi.h"
-#include "catalog/pg_type.h"
+// #include "access/heapam.h"
+// #include "access/relation.h"
+// #include "catalog/pg_collation.h"
+// #include "catalog/pg_index.h"
+// #include "catalog/pg_proc.h"
+// #include "commands/prepare.h"
+// #include "commands/proclang.h"
+// #include "mb/pg_wchar.h"
+// #include "nodes/nodeFuncs.h"
+// #include "optimizer/appendinfo.h"
+// #include "optimizer/clauses.h"
+// #include "optimizer/geqo.h"
+// #include "optimizer/joininfo.h"
+// #include "optimizer/optimizer.h"
+// #include "optimizer/pathnode.h"
+// #include "optimizer/prep.h"
+// #include "optimizer/restrictinfo.h"
+// #include "parser/parsetree.h"
+// #include "parser/scansup.h"
+// #include "partitioning/partbounds.h"
+// #include "tcop/utility.h"
+// #include "utils/builtins.h"
+// #include "utils/float.h"
+// #include "utils/lsyscache.h"
+// #include "utils/memutils.h"
+// #include "utils/rel.h"
+// #include "utils/snapmgr.h"
+// #include "utils/syscache.h"
+// #include "catalog/pg_class.h"
+// #include "executor/spi.h"
+// #include "catalog/pg_type.h"
 
 PG_MODULE_MAGIC;
+void _PG_init (void);
+
+static bool is_used = false;
 
 // -----------------------------------------------------------------------------
 //                                         GUC
 // -----------------------------------------------------------------------------
 
-static bool force_hashjoin      = false;
-static bool force_mergejoin     = false;
-static bool force_nestloop      = false;
+static bool force_hashjoin  = false;
+static bool force_mergejoin = false;
+static bool force_nestloop  = false;
 
 // -----------------------------------------------------------------------------
 //                                   HOOKS - VARS
@@ -122,7 +125,7 @@ static void pg_plan_fuzz_join_transformation (int type)
             pg_plan_fuzz_set_config_option (
                 "enable_mergejoin",
                 "off"
-            );
+            ); return;
         };
         case T_MergeJoin: 
         {
@@ -133,7 +136,7 @@ static void pg_plan_fuzz_join_transformation (int type)
             pg_plan_fuzz_set_config_option (
                 "enable_nestloop",
                 "off"
-            );
+            ); return;
         }
         case T_NestLoop: 
         {
@@ -144,8 +147,10 @@ static void pg_plan_fuzz_join_transformation (int type)
             pg_plan_fuzz_set_config_option(
                 "enable_mergejoin",
                 "off"
-            );
+            ); return;
         }
+        default:
+        { return; }
     }
 }
 
@@ -339,6 +344,14 @@ static void pg_plan_fuzz_set_rel_pathlist (
         rte
     );
 
+    // Here we will place Join Transforms, because in 
+    // this current state of plan optimizer still not 
+    // change any join node
+
+    if (force_hashjoin)    pg_plan_fuzz_join_transformation(T_HashJoin);
+    if (force_mergejoin)   pg_plan_fuzz_join_transformation(T_MergeJoin);
+    if (force_nestloop)    pg_plan_fuzz_join_transformation(T_NestLoop);
+
     // Create new index path, because we need to change
     // some seq scan ( for example first ) and for this
     // we need index path, to raise seq scan path cost
@@ -354,6 +367,8 @@ static void pg_plan_fuzz_set_rel_pathlist (
             pg_plan_fuzz_node_type_to_str(path->pathtype),
             path->total_cost
         );
+
+        if (path->pathtype == T_IndexScan) path->total_cost = 0.01;
     }
 }
 
@@ -364,12 +379,37 @@ static void pg_plan_fuzz_relation_info_hook (
     RelOptInfo      *rel
 ) 
 {
+
+    // Here we are gonna do scan nodes transformations
+    // By setting up escan hooks for exactly table  
+
+    // SINGLETONED
+
     if (prev_get_relation_info_hook)    prev_get_relation_info_hook(
         root,
         relationObjectId,
         inhparent,
         rel
     );
+
+    if (!is_used) 
+    {
+        elog(
+            INFO,
+            "set_config_option"
+        );  
+
+        pg_plan_fuzz_set_config_option(
+            "enable_seqscan", 
+            "off");
+        is_used = true;
+    }
+
+    pg_plan_fuzz_set_config_option(
+        "enable_seqscan",
+        "on"
+    );
+
 }
 
 static void pg_plan_fuzz_ExecutorEnd (
@@ -380,18 +420,17 @@ static void pg_plan_fuzz_ExecutorEnd (
     else                    standard_ExecutorEnd(queryDesc);
 }
 
-void _PG_init (void);
 void _PG_init (void) 
 {
     elog(INFO, "Initialized pg_plan_fuzz extension");
 
     DefineCustomBoolVariable(
-        "force_hashjoin", 
+        "pg_plan_fuzz.force_hashjoin", 
         "Force planner/optimizer to use HashJoin in plan",
         NULL, 
-        &enable_hashjoin,
+        &force_hashjoin,
         false,
-        superuser() ? PGC_SUSET : PGC_USERSET,
+        PGC_USERSET,
         0,
         NULL,
         NULL,
@@ -399,12 +438,12 @@ void _PG_init (void)
     );
 
     DefineCustomBoolVariable(
-        "force_mergejoin", 
+        "pg_plan_fuzz.force_mergejoin", 
         "Force planner/optimizer to use MergeJoin in plan",
         NULL, 
-        &enable_mergejoin,
+        &force_mergejoin,
         false,
-        superuser() ? PGC_SUSET : PGC_USERSET,
+        PGC_USERSET,
         0,
         NULL,
         NULL,
@@ -412,12 +451,12 @@ void _PG_init (void)
     );
 
     DefineCustomBoolVariable(
-        "force_nestloop", 
+        "pg_plan_fuzz.force_nestloop", 
         "Force planner/optimizer to use NestedLoop in plan",
         NULL, 
-        &enable_nestloop,
+        &force_nestloop,
         false,
-        superuser() ? PGC_SUSET : PGC_USERSET,
+        PGC_USERSET,
         0,
         NULL,
         NULL,
