@@ -3,3 +3,7 @@
 *.bc
 
 test/result/
+test/regression.diffs
+test/regression.out
+
+.*/
