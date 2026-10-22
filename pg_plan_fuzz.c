@@ -1,3 +1,4 @@
+#include "c.h"
 #include "postgres.h"
 
 #include "utils/elog.h"
@@ -20,6 +21,9 @@
 #include "optimizer/cost.h"
 #include "miscadmin.h"
 
+#include <postgresql/18/server/access/relation.h>
+#include <postgresql/18/server/catalog/catalog.h>
+#include <postgresql/18/server/nodes/parsenodes.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -68,6 +72,7 @@ static int**    changes;
 
 static char**   scan_enables;
 static int      pointer;
+static bool     is_system;
 
 // -----------------------------------------------------------------------------
 //                                         GUC
@@ -99,10 +104,25 @@ static int          pg_plan_fuzz_set_config_option(
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
 static void         pg_plan_fuzz_generate_changes    (RelOptInfo *relinfo);
 static void         pg_plan_fuzz_init_scan_enables   ();
+static void         pg_plan_fuzz_check_system_table (Oid relationObjectId);
 
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
+
+static void pg_plan_fuzz_check_system_table (Oid relationObjectOid) 
+{
+    Relation    rel;
+
+    is_system = false;
+        
+    if (OidIsValid(relationObjectOid)) 
+    {
+        rel = relation_open(relationObjectOid, NoLock);
+        if (IsSystemRelation(rel)) { is_system = true; }
+        relation_close(rel, NoLock);
+    }
+}
 
 static void pg_plan_fuzz_generate_changes (RelOptInfo *relinfo) 
 {
@@ -283,6 +303,9 @@ static RelOptInfo *pg_plan_fuzz_join_search (
         initial_rels
     );
 
+    if (is_system)
+        return rel;
+    
     foreach (lc, rel->pathlist) 
     {
         path = (Path*)lfirst(lc);
@@ -362,6 +385,9 @@ static void pg_plan_fuzz_set_rel_pathlist (
     // if (force_mergejoin)   pg_plan_fuzz_join_transformation(T_MergeJoin);
     // if (force_nestloop)    pg_plan_fuzz_join_transformation(T_NestLoop);
 
+    if (is_system) 
+        return;
+
     foreach (lc, rel->pathlist) 
     {
         path = (Path*)lfirst(lc);
@@ -388,6 +414,9 @@ static void pg_plan_fuzz_relation_info_hook (
         inhparent,
         rel
     );
+
+    pg_plan_fuzz_check_system_table(relationObjectId);
+    
 }
 
 static void pg_plan_fuzz_ExecutorEnd (
