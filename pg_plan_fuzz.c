@@ -13,11 +13,14 @@
 #include "nodes/params.h"
 #include "executor/executor.h"
 #include "nodes/nodes.h"
+#include "utils/hsearch.h"
+#include "utils/memutils.h"
 #include "utils/palloc.h"
 #include "utils/guc.h"
 #include "optimizer/cost.h"
 #include "miscadmin.h"
 
+#include <stdbool.h>
 #include <string.h>
 
 // Other includes from `pg_hint_plan`
@@ -57,7 +60,14 @@
 PG_MODULE_MAGIC;
 void _PG_init (void);
 
-static bool is_used = false;
+// -----------------------------------------------------------------------------
+//                                      STRUCTS
+// -----------------------------------------------------------------------------
+
+static int**    changes;
+
+static char**   scan_enables;
+static int      pointer;
 
 // -----------------------------------------------------------------------------
 //                                         GUC
@@ -87,11 +97,52 @@ static int          pg_plan_fuzz_set_config_option(
                     const char* name
                     );
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
-static void         pg_plan_fuzz_join_transformation (int type);
+static void         pg_plan_fuzz_generate_changes    (RelOptInfo *relinfo);
+static void         pg_plan_fuzz_init_scan_enables   ();
 
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
+
+static void pg_plan_fuzz_generate_changes (RelOptInfo *relinfo) 
+{
+    ListCell    *lc;
+    int         all_variants;
+    
+    foreach (lc, relinfo->pathlist) 
+    {
+        
+    }
+
+}
+
+static void pg_plan_fuzz_init_scan_enables () 
+{
+    int             size;
+    MemoryContext   ccxt;
+
+    ccxt         = CurrentMemoryContext;
+
+    MemoryContextSwitchTo(TopMemoryContext);
+
+    size         = 4;
+
+    scan_enables = (char**)palloc0(sizeof(char*) * size);
+
+    scan_enables[0] = (char*)palloc0(sizeof(char) * 30);
+    scan_enables[1] = (char*)palloc0(sizeof(char) * 30);
+    scan_enables[2] = (char*)palloc0(sizeof(char) * 30);
+    scan_enables[3] = (char*)palloc0(sizeof(char) * 30);
+
+    scan_enables[0] = "enable_seqscan";
+    scan_enables[1] = "enable_indexscan";
+    scan_enables[2] = "enable_indexonlyscan";
+    scan_enables[3] = "enable_bitmapscan";
+
+    pointer         = 0;
+
+    MemoryContextSwitchTo(ccxt);
+}
 
 static const char* pg_plan_fuzz_node_type_to_str(int type)
 {
@@ -110,47 +161,6 @@ static const char* pg_plan_fuzz_node_type_to_str(int type)
         case T_Limit:           return "Limit";
         case T_SubqueryScan:    return "SubqueryScan";
         default:                return "Other Node";
-    }
-}
-
-static void pg_plan_fuzz_join_transformation (int type) 
-{
-    switch (type) 
-    {
-        case T_HashJoin: 
-        {
-            pg_plan_fuzz_set_config_option (
-                "enable_nestloop", 
-                "off");
-            pg_plan_fuzz_set_config_option (
-                "enable_mergejoin",
-                "off"
-            ); return;
-        };
-        case T_MergeJoin: 
-        {
-            pg_plan_fuzz_set_config_option (
-                "enable_hashjoin",
-                "off"
-            );
-            pg_plan_fuzz_set_config_option (
-                "enable_nestloop",
-                "off"
-            ); return;
-        }
-        case T_NestLoop: 
-        {
-            pg_plan_fuzz_set_config_option (
-                "enable_hashjoin",
-                "off"
-            );
-            pg_plan_fuzz_set_config_option(
-                "enable_mergejoin",
-                "off"
-            ); return;
-        }
-        default:
-        { return; }
     }
 }
 
@@ -279,7 +289,7 @@ static RelOptInfo *pg_plan_fuzz_join_search (
 
         elog(
             INFO,
-            "Join node: %s \t-> COST -- %f --",
+            "Join node: %s \t\t -> COST -- %f --",
             pg_plan_fuzz_node_type_to_str(path->pathtype),
             path->total_cost
         );
@@ -348,14 +358,9 @@ static void pg_plan_fuzz_set_rel_pathlist (
     // this current state of plan optimizer still not 
     // change any join node
 
-    if (force_hashjoin)    pg_plan_fuzz_join_transformation(T_HashJoin);
-    if (force_mergejoin)   pg_plan_fuzz_join_transformation(T_MergeJoin);
-    if (force_nestloop)    pg_plan_fuzz_join_transformation(T_NestLoop);
-
-    // Create new index path, because we need to change
-    // some seq scan ( for example first ) and for this
-    // we need index path, to raise seq scan path cost
-    // and decrease index path cost.
+    // if (force_hashjoin)    pg_plan_fuzz_join_transformation(T_HashJoin);
+    // if (force_mergejoin)   pg_plan_fuzz_join_transformation(T_MergeJoin);
+    // if (force_nestloop)    pg_plan_fuzz_join_transformation(T_NestLoop);
 
     foreach (lc, rel->pathlist) 
     {
@@ -363,12 +368,10 @@ static void pg_plan_fuzz_set_rel_pathlist (
 
         elog(
             INFO,
-            "Scan node: %s \t-> COST -- %f --",
+            "Scan node: %s \t\t -> COST -- %f --",
             pg_plan_fuzz_node_type_to_str(path->pathtype),
             path->total_cost
         );
-
-        if (path->pathtype == T_IndexScan) path->total_cost = 0.01;
     }
 }
 
@@ -379,37 +382,12 @@ static void pg_plan_fuzz_relation_info_hook (
     RelOptInfo      *rel
 ) 
 {
-
-    // Here we are gonna do scan nodes transformations
-    // By setting up escan hooks for exactly table  
-
-    // SINGLETONED
-
     if (prev_get_relation_info_hook)    prev_get_relation_info_hook(
         root,
         relationObjectId,
         inhparent,
         rel
     );
-
-    if (!is_used) 
-    {
-        elog(
-            INFO,
-            "set_config_option"
-        );  
-
-        pg_plan_fuzz_set_config_option(
-            "enable_seqscan", 
-            "off");
-        is_used = true;
-    }
-
-    pg_plan_fuzz_set_config_option(
-        "enable_seqscan",
-        "on"
-    );
-
 }
 
 static void pg_plan_fuzz_ExecutorEnd (
@@ -423,6 +401,8 @@ static void pg_plan_fuzz_ExecutorEnd (
 void _PG_init (void) 
 {
     elog(INFO, "Initialized pg_plan_fuzz extension");
+
+    pg_plan_fuzz_init_scan_enables();
 
     DefineCustomBoolVariable(
         "pg_plan_fuzz.force_hashjoin", 
