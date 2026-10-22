@@ -1,7 +1,7 @@
 ## pg_plan_fuzz -- 22.10.2026
 ---
-*Current state*: Prototype
-*Current functionality*: Not fully controllable join and scan nodes mutations
+    - **Current state**: Prototype
+    - **Current functionality**: Not fully controllable join and scan nodes mutations
 
 ### CURRENT TASKS
 ---
