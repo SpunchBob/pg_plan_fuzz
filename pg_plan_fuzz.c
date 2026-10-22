@@ -61,6 +61,8 @@
 // #include "executor/spi.h"
 // #include "catalog/pg_type.h"
 
+static const int MAX_JOIN_RECOURSE_LEVEL = 1000000;
+
 PG_MODULE_MAGIC;
 void _PG_init (void);
 
@@ -73,14 +75,16 @@ static int**    changes;
 static char**   scan_enables;
 static int      pointer;
 static bool     is_system;
+static int      join_recourse_level_ = 0;
 
 // -----------------------------------------------------------------------------
 //                                         GUC
 // -----------------------------------------------------------------------------
 
-static bool force_hashjoin  = false;
-static bool force_mergejoin = false;
-static bool force_nestloop  = false;
+static bool     force_hashjoin      = false;
+static bool     force_mergejoin     = false;
+static bool     force_nestloop      = false;
+static int      join_recourse_level = 0;
 
 // -----------------------------------------------------------------------------
 //                                   HOOKS - VARS
@@ -92,6 +96,7 @@ static planner_hook_type                prev_planner = NULL;
 static set_rel_pathlist_hook_type       prev_set_rel_pathlist = NULL;
 static get_relation_info_hook_type      prev_get_relation_info_hook = NULL;
 static ExecutorEnd_hook_type            prev_ExecutorEnd = NULL;
+static set_join_pathlist_hook_type      prev_join_pathlist_hook = NULL;
 
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - DECLARATIONS
@@ -102,14 +107,28 @@ static int          pg_plan_fuzz_set_config_option(
                     const char* name
                     );
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
-static void         pg_plan_fuzz_join_transformation (int type); 
+static void         pg_plan_fuzz_join_transformation (int type, List* pathlist); 
 static void         pg_plan_fuzz_generate_changes    (RelOptInfo *relinfo);
 static void         pg_plan_fuzz_init_scan_enables   ();
-static void         pg_plan_fuzz_check_system_table (Oid relationObjectId);
+static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
+static void         pg_plan_fuzz_clear_levels        ();
+static void         pg_plan_fuzz_clear_join_enables  ();
 
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
+
+static void pg_plan_fuzz_clear_join_enables() 
+{
+    pg_plan_fuzz_set_config_option("enable_hashjoin", "on");
+    pg_plan_fuzz_set_config_option("enable_mergejoin", "on");
+    pg_plan_fuzz_set_config_option("enable_nestloop", "on");
+}
+
+static void pg_plan_fuzz_clear_levels() 
+{
+    join_recourse_level_ = 0;
+}
 
 static void pg_plan_fuzz_check_system_table (Oid relationObjectOid) 
 {
@@ -125,30 +144,37 @@ static void pg_plan_fuzz_check_system_table (Oid relationObjectOid)
     }
 }
 
-static void pg_plan_fuzz_join_transformation (int type) 
+static void pg_plan_fuzz_join_transformation (int type, List* pathlist) 
 {
+    ListCell    *lc;
+    Path        *path;
     switch (type) 
     {
         case T_HashJoin: 
         {
-            pg_plan_fuzz_set_config_option (
-                "enable_nestloop", 
-                "off");
-            pg_plan_fuzz_set_config_option (
-                "enable_mergejoin",
-                "off"
-            ); return;
+            foreach (lc, pathlist) 
+            {
+                path = (Path*)lfirst(lc);
+                if (path->pathtype == T_HashJoin)
+                    path->total_cost = 0.01;
+                if (path->pathtype == T_MergeJoin)
+                    path->total_cost = 100;
+                if (path->pathtype == T_NestLoop)
+                    path->total_cost = 100;
+            }
         };
         case T_MergeJoin: 
         {
-            pg_plan_fuzz_set_config_option (
-                "enable_hashjoin",
-                "off"
-            );
-            pg_plan_fuzz_set_config_option (
-                "enable_nestloop",
-                "off"
-            ); return;
+            foreach (lc, pathlist) 
+            {
+                path = (Path*)lfirst(lc);
+                if (path->pathtype == T_HashJoin)
+                    path->total_cost = 100;
+                if (path->pathtype == T_MergeJoin)
+                    path->total_cost = 0.001;
+                if (path->pathtype == T_NestLoop)
+                    path->total_cost = 100;
+            }
         }
         case T_NestLoop: 
         {
@@ -319,6 +345,15 @@ static void pg_plan_fuzz_ExecutorEnd (
     QueryDesc *queryDesc
 );
 
+static void pg_plan_fuzz_set_join_pathlist_hook(
+    PlannerInfo         *root,
+    RelOptInfo          *joinrel,
+	RelOptInfo          *outerrel,
+    RelOptInfo          *innerrel,
+    JoinType            jointype,
+    JoinPathExtraData   *extra
+);
+
 // -----------------------------------------------------------------------------
 //                              HOOKS - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
@@ -351,13 +386,6 @@ static RelOptInfo *pg_plan_fuzz_join_search (
     foreach (lc, rel->pathlist) 
     {
         path = (Path*)lfirst(lc);
-
-        elog(
-            INFO,
-            "Join node: %s \t\t -> COST -- %f --",
-            pg_plan_fuzz_node_type_to_str(path->pathtype),
-            path->total_cost
-        );
     }
 
     return rel;
@@ -399,6 +427,8 @@ static PlannedStmt *pg_plan_fuzz_planner (
         boundParams
     );
 
+    pg_plan_fuzz_clear_levels();
+
     return result;
 }
 
@@ -412,23 +442,22 @@ static void pg_plan_fuzz_set_rel_pathlist (
     ListCell    *lc;
     Path        *path;
 
+    if (is_system) 
+    {
+        prev_set_rel_pathlist(
+            root,
+            rel,
+            rti,
+            rte
+        ); return;
+    }
+
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
         rel,
         rti,
         rte
     );
-
-    // Here we will place Join Transforms, because in 
-    // this current state of plan optimizer still not 
-    // change any join node
-
-    if (force_hashjoin)    pg_plan_fuzz_join_transformation(T_HashJoin);
-    if (force_mergejoin)   pg_plan_fuzz_join_transformation(T_MergeJoin);
-    if (force_nestloop)    pg_plan_fuzz_join_transformation(T_NestLoop);
-
-    if (is_system) 
-        return;
 
     foreach (lc, rel->pathlist) 
     {
@@ -441,6 +470,7 @@ static void pg_plan_fuzz_set_rel_pathlist (
             path->total_cost
         );
     }
+
 }
 
 static void pg_plan_fuzz_relation_info_hook (
@@ -467,6 +497,65 @@ static void pg_plan_fuzz_ExecutorEnd (
 {
     if (prev_ExecutorEnd)   prev_ExecutorEnd(queryDesc);
     else                    standard_ExecutorEnd(queryDesc);
+}
+
+static void pg_plan_fuzz_set_join_pathlist_hook(
+    PlannerInfo         *root,
+    RelOptInfo          *joinrel,
+	RelOptInfo          *outerrel,
+    RelOptInfo          *innerrel,
+    JoinType            jointype,
+    JoinPathExtraData   *extra
+) 
+{
+    if (prev_join_pathlist_hook) prev_join_pathlist_hook(
+        root,
+        joinrel,
+        outerrel,
+        innerrel,
+        jointype,
+        extra
+    );
+
+    ListCell    *lc;
+    Path        *path;
+    RelOptInfo  *current_parent;
+
+    foreach (lc, joinrel->pathlist) 
+    {
+        path = (Path*)lfirst(lc);
+
+        if (path->parent != current_parent) 
+            join_recourse_level_++;
+
+        elog(
+            INFO,
+            "Mutated paths: %d",
+            pg_plan_fuzz_node_type_to_str(current_parent->relid)
+        );
+
+        if (join_recourse_level_ == join_recourse_level 
+            && path->parent == current_parent) 
+        {
+            elog(
+                INFO,
+                "Mutated paths: %s",
+                pg_plan_fuzz_node_type_to_str(path->pathtype)
+            );
+            if (path->pathtype == T_HashJoin)
+                    path->total_cost = 100;
+                if (path->pathtype == T_MergeJoin)
+                    path->total_cost = 0.001;
+                if (path->pathtype == T_NestLoop)
+                    path->total_cost = 100;
+        }
+        // elog(
+        //     INFO,
+        //     "Current path: %s",
+        //     pg_plan_fuzz_node_type_to_str(path->pathtype)
+        // );
+        current_parent = path->parent;
+    }
 }
 
 void _PG_init (void) 
@@ -514,6 +603,20 @@ void _PG_init (void)
         NULL
     );
 
+    DefineCustomIntVariable(
+        "pg_plan_fuzz.join_recourse_level",
+        "Current query join_recouse_level",
+        NULL,
+        &join_recourse_level,
+        0,
+        0,
+        MAX_JOIN_RECOURSE_LEVEL,
+        PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL);
+
     prev_join_search                        = join_search_hook;
     join_search_hook                        = pg_plan_fuzz_join_search;
     prev_post_parse_analyzer_hook           = post_parse_analyze_hook;
@@ -526,4 +629,6 @@ void _PG_init (void)
     get_relation_info_hook                  = pg_plan_fuzz_relation_info_hook;
     prev_ExecutorEnd                        = ExecutorEnd_hook;
     ExecutorEnd_hook                        = pg_plan_fuzz_ExecutorEnd;
+    prev_join_pathlist_hook                 = set_join_pathlist_hook;
+    set_join_pathlist_hook                  = pg_plan_fuzz_set_join_pathlist_hook;
 }
