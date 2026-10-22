@@ -102,6 +102,7 @@ static int          pg_plan_fuzz_set_config_option(
                     const char* name
                     );
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
+static void         pg_plan_fuzz_join_transformation (int type); 
 static void         pg_plan_fuzz_generate_changes    (RelOptInfo *relinfo);
 static void         pg_plan_fuzz_init_scan_enables   ();
 static void         pg_plan_fuzz_check_system_table (Oid relationObjectId);
@@ -121,6 +122,47 @@ static void pg_plan_fuzz_check_system_table (Oid relationObjectOid)
         rel = relation_open(relationObjectOid, NoLock);
         if (IsSystemRelation(rel)) { is_system = true; }
         relation_close(rel, NoLock);
+    }
+}
+
+static void pg_plan_fuzz_join_transformation (int type) 
+{
+    switch (type) 
+    {
+        case T_HashJoin: 
+        {
+            pg_plan_fuzz_set_config_option (
+                "enable_nestloop", 
+                "off");
+            pg_plan_fuzz_set_config_option (
+                "enable_mergejoin",
+                "off"
+            ); return;
+        };
+        case T_MergeJoin: 
+        {
+            pg_plan_fuzz_set_config_option (
+                "enable_hashjoin",
+                "off"
+            );
+            pg_plan_fuzz_set_config_option (
+                "enable_nestloop",
+                "off"
+            ); return;
+        }
+        case T_NestLoop: 
+        {
+            pg_plan_fuzz_set_config_option (
+                "enable_hashjoin",
+                "off"
+            );
+            pg_plan_fuzz_set_config_option(
+                "enable_mergejoin",
+                "off"
+            ); return;
+        }
+        default:
+        { return; }
     }
 }
 
@@ -381,9 +423,9 @@ static void pg_plan_fuzz_set_rel_pathlist (
     // this current state of plan optimizer still not 
     // change any join node
 
-    // if (force_hashjoin)    pg_plan_fuzz_join_transformation(T_HashJoin);
-    // if (force_mergejoin)   pg_plan_fuzz_join_transformation(T_MergeJoin);
-    // if (force_nestloop)    pg_plan_fuzz_join_transformation(T_NestLoop);
+    if (force_hashjoin)    pg_plan_fuzz_join_transformation(T_HashJoin);
+    if (force_mergejoin)   pg_plan_fuzz_join_transformation(T_MergeJoin);
+    if (force_nestloop)    pg_plan_fuzz_join_transformation(T_NestLoop);
 
     if (is_system) 
         return;
