@@ -2,7 +2,7 @@
 *.so
 *.bc
 
-test/result/
+test/results/
 test/regression.diffs
 test/regression.out
 
