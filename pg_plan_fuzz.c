@@ -74,7 +74,7 @@ static int**    changes;
 
 static char**   scan_enables;
 static int      pointer;
-static bool     is_system;
+static bool*    is_system;
 static int      join_recourse_level_ = 0;
 
 // -----------------------------------------------------------------------------
@@ -113,12 +113,26 @@ static void         pg_plan_fuzz_init_scan_enables   ();
 static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
 static void         pg_plan_fuzz_clear_levels        ();
 static void         pg_plan_fuzz_clear_join_enables  ();
+static void         pg_plan_fuzz_init                ();
 
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
 
-static void pg_plan_fuzz_clear_join_enables() 
+static void pg_plan_fuzz_init () 
+{
+    MemoryContext ccxt;
+    ccxt        = CurrentMemoryContext;
+
+    MemoryContextSwitchTo(TopMemoryContext);
+
+    is_system   = (bool*)palloc0(sizeof(bool));
+    *is_system  = false;
+
+    MemoryContextSwitchTo(ccxt);
+}
+
+static void pg_plan_fuzz_clear_join_enables () 
 {
     pg_plan_fuzz_set_config_option("enable_hashjoin", "on");
     pg_plan_fuzz_set_config_option("enable_mergejoin", "on");
@@ -133,13 +147,11 @@ static void pg_plan_fuzz_clear_levels()
 static void pg_plan_fuzz_check_system_table (Oid relationObjectOid) 
 {
     Relation    rel;
-
-    is_system = false;
         
     if (OidIsValid(relationObjectOid)) 
     {
         rel = relation_open(relationObjectOid, NoLock);
-        if (IsSystemRelation(rel)) { is_system = true; }
+        if (IsSystemRelation(rel)) { *is_system = true; }
         relation_close(rel, NoLock);
     }
 }
@@ -380,7 +392,7 @@ static RelOptInfo *pg_plan_fuzz_join_search (
         initial_rels
     );
 
-    if (is_system)
+    if (*is_system)
         return rel;
     
     foreach (lc, rel->pathlist) 
@@ -442,22 +454,15 @@ static void pg_plan_fuzz_set_rel_pathlist (
     ListCell    *lc;
     Path        *path;
 
-    if (is_system) 
-    {
-        prev_set_rel_pathlist(
-            root,
-            rel,
-            rti,
-            rte
-        ); return;
-    }
-
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
         rel,
         rti,
         rte
     );
+
+    if (*is_system)
+        return;
 
     foreach (lc, rel->pathlist) 
     {
@@ -486,9 +491,7 @@ static void pg_plan_fuzz_relation_info_hook (
         inhparent,
         rel
     );
-
-    pg_plan_fuzz_check_system_table(relationObjectId);
-    
+    pg_plan_fuzz_check_system_table(relationObjectId);    
 }
 
 static void pg_plan_fuzz_ExecutorEnd (
@@ -516,46 +519,6 @@ static void pg_plan_fuzz_set_join_pathlist_hook(
         jointype,
         extra
     );
-
-    ListCell    *lc;
-    Path        *path;
-    RelOptInfo  *current_parent;
-
-    foreach (lc, joinrel->pathlist) 
-    {
-        path = (Path*)lfirst(lc);
-
-        if (path->parent != current_parent) 
-            join_recourse_level_++;
-
-        elog(
-            INFO,
-            "Mutated paths: %d",
-            pg_plan_fuzz_node_type_to_str(current_parent->relid)
-        );
-
-        if (join_recourse_level_ == join_recourse_level 
-            && path->parent == current_parent) 
-        {
-            elog(
-                INFO,
-                "Mutated paths: %s",
-                pg_plan_fuzz_node_type_to_str(path->pathtype)
-            );
-            if (path->pathtype == T_HashJoin)
-                    path->total_cost = 100;
-                if (path->pathtype == T_MergeJoin)
-                    path->total_cost = 0.001;
-                if (path->pathtype == T_NestLoop)
-                    path->total_cost = 100;
-        }
-        // elog(
-        //     INFO,
-        //     "Current path: %s",
-        //     pg_plan_fuzz_node_type_to_str(path->pathtype)
-        // );
-        current_parent = path->parent;
-    }
 }
 
 void _PG_init (void) 
@@ -563,6 +526,7 @@ void _PG_init (void)
     elog(INFO, "Initialized pg_plan_fuzz extension");
 
     pg_plan_fuzz_init_scan_enables();
+    pg_plan_fuzz_init();
 
     DefineCustomBoolVariable(
         "pg_plan_fuzz.force_hashjoin", 
