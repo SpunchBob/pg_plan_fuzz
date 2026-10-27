@@ -107,7 +107,10 @@ static int          pg_plan_fuzz_set_config_option(
                     const char* name
                     );
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
-static void         pg_plan_fuzz_join_transformation (int type, List* pathlist); 
+static void         pg_plan_fuzz_join_spanner        (int type); 
+static void         pg_plan_fuzz_join_operator       ();
+static void         pg_plan_fuzz_scan_spanner        (int type);
+static void         pg_plan_fuzz_scan_operator       ();
 static void         pg_plan_fuzz_generate_changes    (RelOptInfo *relinfo);
 static void         pg_plan_fuzz_init_scan_enables   ();
 static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
@@ -143,6 +146,35 @@ static void pg_plan_fuzz_force_nestloop ()
     pg_plan_fuzz_set_config_option("enable_nestloop", "on");
 }
 
+// Actually we need to revert state of GUC's
+// But i do not thnik that is needed in our case
+// It is not nessecary for fuzzer
+
+static void pg_plan_fuzz_clear_join_enables () 
+{
+    pg_plan_fuzz_set_config_option("enable_hashjoin", "on");
+    pg_plan_fuzz_set_config_option("enable_mergejoin", "on");
+    pg_plan_fuzz_set_config_option("enable_nestloop", "on");
+}
+
+static void pg_plan_fuzz_join_spanner (int type) 
+{
+    switch (type) 
+    {
+        case T_HashJoin:    { pg_plan_fuzz_force_hashjoin   ();   return; };
+        case T_MergeJoin:   { pg_plan_fuzz_force_mergejoin  ();   return; };
+        case T_NestLoop:    { pg_plan_fuzz_force_nestloop   ();   return; }
+        default:            { return; }
+    }
+}
+
+static void pg_plan_fuzz_join_operator () 
+{
+    if (force_hashjoin)     pg_plan_fuzz_join_spanner(T_HashJoin);
+    if (force_mergejoin)    pg_plan_fuzz_join_spanner(T_MergeJoin);
+    if (force_nestloop)     pg_plan_fuzz_join_spanner(T_NestLoop);
+}
+
 static void pg_plan_fuzz_init () 
 {
     MemoryContext ccxt;
@@ -154,13 +186,6 @@ static void pg_plan_fuzz_init ()
     *is_system  = false;
 
     MemoryContextSwitchTo(ccxt);
-}
-
-static void pg_plan_fuzz_clear_join_enables () 
-{
-    pg_plan_fuzz_set_config_option("enable_hashjoin", "on");
-    pg_plan_fuzz_set_config_option("enable_mergejoin", "on");
-    pg_plan_fuzz_set_config_option("enable_nestloop", "on");
 }
 
 static void pg_plan_fuzz_clear_levels() 
@@ -177,54 +202,6 @@ static void pg_plan_fuzz_check_system_table (Oid relationObjectOid)
         rel = relation_open(relationObjectOid, NoLock);
         if (IsSystemRelation(rel)) { *is_system = true; }
         relation_close(rel, NoLock);
-    }
-}
-
-static void pg_plan_fuzz_join_transformation (int type, List* pathlist) 
-{
-    ListCell    *lc;
-    Path        *path;
-    switch (type) 
-    {
-        case T_HashJoin: 
-        {
-            foreach (lc, pathlist) 
-            {
-                path = (Path*)lfirst(lc);
-                if (path->pathtype == T_HashJoin)
-                    path->total_cost = 0.01;
-                if (path->pathtype == T_MergeJoin)
-                    path->total_cost = 100;
-                if (path->pathtype == T_NestLoop)
-                    path->total_cost = 100;
-            }
-        };
-        case T_MergeJoin: 
-        {
-            foreach (lc, pathlist) 
-            {
-                path = (Path*)lfirst(lc);
-                if (path->pathtype == T_HashJoin)
-                    path->total_cost = 100;
-                if (path->pathtype == T_MergeJoin)
-                    path->total_cost = 0.001;
-                if (path->pathtype == T_NestLoop)
-                    path->total_cost = 100;
-            }
-        }
-        case T_NestLoop: 
-        {
-            pg_plan_fuzz_set_config_option (
-                "enable_hashjoin",
-                "off"
-            );
-            pg_plan_fuzz_set_config_option(
-                "enable_mergejoin",
-                "off"
-            ); return;
-        }
-        default:
-        { return; }
     }
 }
 
@@ -548,7 +525,7 @@ static void pg_plan_fuzz_set_join_pathlist_hook(
 
     if (join_recourse_level_ >= join_recourse_level) 
     {
-        pg_plan_fuzz_force_mergejoin();
+        pg_plan_fuzz_join_operator();
     }
 
     join_recourse_level_++;
