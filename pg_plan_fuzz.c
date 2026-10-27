@@ -61,6 +61,9 @@
 // #include "executor/spi.h"
 // #include "catalog/pg_type.h"
 
+#define JOIN_PATHLIST   0
+#define JOIN_SEARCH     1
+
 static const int MAX_JOIN_RECOURSE_LEVEL = 1000000;
 
 PG_MODULE_MAGIC;
@@ -76,6 +79,8 @@ static char**       scan_enables;
 static int          pointer;
 static bool*        is_system;
 static int          join_recourse_level_    = 0;
+static bool         multirelation           = false;
+static int          relations_counter       = 0;
 
 // -----------------------------------------------------------------------------
 //                                         GUC
@@ -109,12 +114,14 @@ static int          pg_plan_fuzz_set_config_option(
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
 static void         pg_plan_fuzz_join_spanner        (int type); 
 static void         pg_plan_fuzz_join_operator       ();
+static void         pg_plan_fuzz_join_transformator  ();
+static void         pg_plan_fuzz_join_navigator      (int pos);
 static void         pg_plan_fuzz_scan_spanner        (int type);
 static void         pg_plan_fuzz_scan_operator       ();
 static void         pg_plan_fuzz_generate_changes    (RelOptInfo *relinfo);
 static void         pg_plan_fuzz_init_scan_enables   ();
 static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
-static void         pg_plan_fuzz_clear_levels        ();
+static void         pg_plan_fuzz_clear               ();
 static void         pg_plan_fuzz_clear_join_enables  ();
 static void         pg_plan_fuzz_init                ();
 static void         pg_plan_fuzz_force_mergejoin     ();
@@ -124,6 +131,31 @@ static void         pg_plan_fuzz_force_nestloop      ();
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
+
+static void pg_plan_fuzz_join_navigator (int pos) 
+{
+    switch (pos) 
+    {
+        case JOIN_PATHLIST: 
+        {
+            if (multirelation) pg_plan_fuzz_join_transformator();
+            return;
+        }
+        case JOIN_SEARCH:
+        {
+            if (!multirelation) pg_plan_fuzz_join_operator();
+            return;
+        }
+        default: { return; }
+    }
+}
+
+static void pg_plan_fuzz_join_transformator () 
+{
+    if (join_recourse_level_ >= join_recourse_level) 
+    { pg_plan_fuzz_join_operator(); }
+    join_recourse_level_++;
+}
 
 static void pg_plan_fuzz_force_mergejoin () 
 {
@@ -188,9 +220,12 @@ static void pg_plan_fuzz_init ()
     MemoryContextSwitchTo(ccxt);
 }
 
-static void pg_plan_fuzz_clear_levels() 
+static void pg_plan_fuzz_clear() 
 {
-    join_recourse_level_ = 0;
+    join_recourse_level_    = 0;
+    relations_counter       = 0;
+    
+    pg_plan_fuzz_clear_join_enables();
 }
 
 static void pg_plan_fuzz_check_system_table (Oid relationObjectOid) 
@@ -378,8 +413,16 @@ static RelOptInfo *pg_plan_fuzz_join_search (
 ) 
 {
     RelOptInfo  *rel;
-    ListCell    *lc;
-    Path        *path;
+
+    elog (INFO, "Call join search hook");
+
+    if (*is_system)         return standard_join_search(
+        root, 
+        levels_needed,
+        initial_rels
+    );
+
+    pg_plan_fuzz_join_navigator(JOIN_SEARCH);
 
     if (prev_join_search)   rel = prev_join_search(
         root,
@@ -393,9 +436,6 @@ static RelOptInfo *pg_plan_fuzz_join_search (
         initial_rels
     );
 
-    if (*is_system)
-        return rel;
-    
     return rel;
 }
 
@@ -435,7 +475,7 @@ static PlannedStmt *pg_plan_fuzz_planner (
         boundParams
     );
 
-    pg_plan_fuzz_clear_levels();
+    pg_plan_fuzz_clear();
 
     return result;
 }
@@ -491,8 +531,10 @@ static void pg_plan_fuzz_relation_info_hook (
     
     if (*is_system)
         return;
-    
-    elog (INFO, "relation hook for: %d", rel->relid); 
+
+    relations_counter++;
+    elog (INFO, "Relations counter: %d", relations_counter);
+    if (relations_counter > 2) multirelation = true;
 }
 
 static void pg_plan_fuzz_ExecutorEnd (
@@ -521,17 +563,10 @@ static void pg_plan_fuzz_set_join_pathlist_hook(
         extra   
     );
 
-    elog (INFO ,"Working...");
-
-    if (join_recourse_level_ >= join_recourse_level) 
-    {
-        pg_plan_fuzz_join_operator();
-    }
-
-    join_recourse_level_++;
-
     if (*is_system)
         return;
+
+    pg_plan_fuzz_join_navigator(JOIN_PATHLIST);
 }
 
 void _PG_init (void) 
@@ -582,7 +617,7 @@ void _PG_init (void)
 
     DefineCustomIntVariable(
         "pg_plan_fuzz.join_recourse_level",
-        "Current query join_recouse_level",
+        "Current query join_recourse_level",
         NULL,
         &join_recourse_level,
         0,
