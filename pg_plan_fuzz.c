@@ -70,12 +70,12 @@ void _PG_init (void);
 //                                      STRUCTS
 // -----------------------------------------------------------------------------
 
-static int**    changes;
+static int**        changes;
 
-static char**   scan_enables;
-static int      pointer;
-static bool*    is_system;
-static int      join_recourse_level_ = 0;
+static char**       scan_enables;
+static int          pointer;
+static bool*        is_system;
+static int          join_recourse_level_    = 0;
 
 // -----------------------------------------------------------------------------
 //                                         GUC
@@ -114,10 +114,34 @@ static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
 static void         pg_plan_fuzz_clear_levels        ();
 static void         pg_plan_fuzz_clear_join_enables  ();
 static void         pg_plan_fuzz_init                ();
+static void         pg_plan_fuzz_force_mergejoin     ();
+static void         pg_plan_fuzz_force_hashjoin      ();
+static void         pg_plan_fuzz_force_nestloop      ();
 
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
+
+static void pg_plan_fuzz_force_mergejoin () 
+{
+    pg_plan_fuzz_set_config_option("enable_mergejoin", "on");
+    pg_plan_fuzz_set_config_option("enable_hashjoin", "off");
+    pg_plan_fuzz_set_config_option("enable_nestloop", "off");
+}
+
+static void pg_plan_fuzz_force_hashjoin () 
+{
+    pg_plan_fuzz_set_config_option("enable_mergejoin", "off");
+    pg_plan_fuzz_set_config_option("enable_hashjoin", "on");
+    pg_plan_fuzz_set_config_option("enable_nestloop", "off");
+}
+
+static void pg_plan_fuzz_force_nestloop () 
+{
+    pg_plan_fuzz_set_config_option("enable_mergejoin", "off");
+    pg_plan_fuzz_set_config_option("enable_hashjoin", "off");
+    pg_plan_fuzz_set_config_option("enable_nestloop", "on");
+}
 
 static void pg_plan_fuzz_init () 
 {
@@ -395,11 +419,6 @@ static RelOptInfo *pg_plan_fuzz_join_search (
     if (*is_system)
         return rel;
     
-    foreach (lc, rel->pathlist) 
-    {
-        path = (Path*)lfirst(lc);
-    }
-
     return rel;
 }
 
@@ -475,7 +494,6 @@ static void pg_plan_fuzz_set_rel_pathlist (
             path->total_cost
         );
     }
-
 }
 
 static void pg_plan_fuzz_relation_info_hook (
@@ -491,7 +509,13 @@ static void pg_plan_fuzz_relation_info_hook (
         inhparent,
         rel
     );
-    pg_plan_fuzz_check_system_table(relationObjectId);    
+    
+    pg_plan_fuzz_check_system_table(relationObjectId);  
+    
+    if (*is_system)
+        return;
+    
+    elog (INFO, "relation hook for: %d", rel->relid); 
 }
 
 static void pg_plan_fuzz_ExecutorEnd (
@@ -517,8 +541,20 @@ static void pg_plan_fuzz_set_join_pathlist_hook(
         outerrel,
         innerrel,
         jointype,
-        extra
+        extra   
     );
+
+    elog (INFO ,"Working...");
+
+    if (join_recourse_level_ >= join_recourse_level) 
+    {
+        pg_plan_fuzz_force_mergejoin();
+    }
+
+    join_recourse_level_++;
+
+    if (*is_system)
+        return;
 }
 
 void _PG_init (void) 
