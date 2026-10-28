@@ -283,6 +283,8 @@ static void pg_plan_fuzz_clear()
 {
     join_recourse_level_    = 0;
     relations_counter       = 0;
+    multirelation           = false;
+    pg_plan_fuzz_clear_join_enables();
 }
 
 static void pg_plan_fuzz_check_system_table (Oid relationObjectOid) 
