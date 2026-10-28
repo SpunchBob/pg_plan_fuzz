@@ -65,8 +65,8 @@
 #define JOIN_PATHLIST_PREV      1
 #define JOIN_PATHLIST_POST      2
 #define JOIN_SEARCH             3
-#define NO                      1000.00
-#define YES                     0.00001
+#define NO                      100000000.00
+#define YES                     0.0000000001
 
 static const int MAX_JOIN_RECOURSE_LEVEL = 1000000;
 
@@ -144,11 +144,13 @@ static void pg_plan_fuzz_join_coster()
     Path        *path;
     int         type;
 
+    type = 0;
+
     if (force_hashjoin)     type = T_HashJoin;
     if (force_mergejoin)    type = T_MergeJoin;
     if (force_nestloop)     type = T_NestLoop;
 
-    if (!type)              return;
+    if (type == 0)              return;
 
     foreach (lc, current_pathlist) 
     {
@@ -205,6 +207,10 @@ static void pg_plan_fuzz_force_mergejoin ()
     pg_plan_fuzz_set_config_option("enable_mergejoin", "on");
     pg_plan_fuzz_set_config_option("enable_hashjoin", "off");
     pg_plan_fuzz_set_config_option("enable_nestloop", "off");
+
+    enable_mergejoin    = true;
+    enable_hashjoin     = false;
+    enable_nestloop     = false; 
 }
 
 static void pg_plan_fuzz_force_hashjoin () 
@@ -212,6 +218,10 @@ static void pg_plan_fuzz_force_hashjoin ()
     pg_plan_fuzz_set_config_option("enable_mergejoin", "off");
     pg_plan_fuzz_set_config_option("enable_hashjoin", "on");
     pg_plan_fuzz_set_config_option("enable_nestloop", "off");
+
+    enable_mergejoin    = false;
+    enable_hashjoin     = true;
+    enable_nestloop     = false; 
 }
 
 static void pg_plan_fuzz_force_nestloop () 
@@ -219,6 +229,10 @@ static void pg_plan_fuzz_force_nestloop ()
     pg_plan_fuzz_set_config_option("enable_mergejoin", "off");
     pg_plan_fuzz_set_config_option("enable_hashjoin", "off");
     pg_plan_fuzz_set_config_option("enable_nestloop", "on");
+
+    enable_mergejoin    = false;
+    enable_hashjoin     = false;
+    enable_nestloop     = true; 
 }
 
 // Actually we need to revert state of GUC's
@@ -484,6 +498,10 @@ static void pg_plan_fuzz_post_parse_anlayze (
     JumbleState *jstate
 ) 
 {
+    elog (
+        INFO,
+        "Call post parse analyze"
+    );
     if (prev_post_parse_analyzer_hook)  prev_post_parse_analyzer_hook(
         pstate,
         query,
@@ -634,6 +652,16 @@ static void pg_plan_fuzz_set_join_pathlist_hook(
         jointype,
         extra   
     );
+
+    // add_paths_to_joinrel(
+    //     root, 
+    //     joinrel,
+    //     outerrel,
+    //     innerrel,
+    //     jointype,
+    //     extra->sjinfo,
+    //     extra->restrictlist
+    // );
 
     current_pathlist = joinrel->pathlist;
 
