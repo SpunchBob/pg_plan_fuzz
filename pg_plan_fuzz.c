@@ -23,6 +23,7 @@
 
 #include <postgresql/18/server/access/relation.h>
 #include <postgresql/18/server/catalog/catalog.h>
+#include <postgresql/18/server/nodes/nodes.h>
 #include <postgresql/18/server/nodes/parsenodes.h>
 #include <stdbool.h>
 #include <string.h>
@@ -61,8 +62,11 @@
 // #include "executor/spi.h"
 // #include "catalog/pg_type.h"
 
-#define JOIN_PATHLIST   0
-#define JOIN_SEARCH     1
+#define JOIN_PATHLIST_PREV      1
+#define JOIN_PATHLIST_POST      2
+#define JOIN_SEARCH             3
+#define NO                      1000.00
+#define YES                     0.00001
 
 static const int MAX_JOIN_RECOURSE_LEVEL = 1000000;
 
@@ -81,6 +85,7 @@ static bool*        is_system;
 static int          join_recourse_level_    = 0;
 static bool         multirelation           = false;
 static int          relations_counter       = 0;
+static List*        current_pathlist        = NIL;
 
 // -----------------------------------------------------------------------------
 //                                         GUC
@@ -114,8 +119,9 @@ static int          pg_plan_fuzz_set_config_option(
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
 static void         pg_plan_fuzz_join_spanner        (int type); 
 static void         pg_plan_fuzz_join_operator       ();
-static void         pg_plan_fuzz_join_transformator  ();
+static void         pg_plan_fuzz_join_transformator  (int pos);
 static void         pg_plan_fuzz_join_navigator      (int pos);
+static void         pg_plan_fuzz_join_coster         ();
 static void         pg_plan_fuzz_scan_spanner        (int type);
 static void         pg_plan_fuzz_scan_operator       ();
 static void         pg_plan_fuzz_generate_changes    (RelOptInfo *relinfo);
@@ -132,13 +138,43 @@ static void         pg_plan_fuzz_force_nestloop      ();
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
 
+static void pg_plan_fuzz_join_coster() 
+{
+    ListCell    *lc;
+    Path        *path;
+    int         type;
+
+    if (force_hashjoin)     type = T_HashJoin;
+    if (force_mergejoin)    type = T_MergeJoin;
+    if (force_nestloop)     type = T_NestLoop;
+
+    if (!type)              return;
+
+    foreach (lc, current_pathlist) 
+    {
+        path = (Path*)lfirst(lc);
+
+        if (path->pathtype == type)     path->total_cost = YES;
+        else                            path->total_cost = NO;
+    }
+}
+
 static void pg_plan_fuzz_join_navigator (int pos) 
 {
     switch (pos) 
     {
-        case JOIN_PATHLIST: 
+        case JOIN_PATHLIST_PREV: 
         {
-            if (multirelation) pg_plan_fuzz_join_transformator();
+            if (multirelation) pg_plan_fuzz_join_transformator(
+                JOIN_PATHLIST_PREV
+            );
+            return;
+        }
+        case JOIN_PATHLIST_POST: 
+        {
+            if (multirelation) pg_plan_fuzz_join_transformator(
+                JOIN_PATHLIST_POST
+            );
             return;
         }
         case JOIN_SEARCH:
@@ -150,10 +186,17 @@ static void pg_plan_fuzz_join_navigator (int pos)
     }
 }
 
-static void pg_plan_fuzz_join_transformator () 
+static void pg_plan_fuzz_join_transformator (int pos) 
 {
     if (join_recourse_level_ >= join_recourse_level) 
-    { pg_plan_fuzz_join_operator(); }
+    { 
+        switch (pos) 
+        {
+            case JOIN_PATHLIST_PREV: pg_plan_fuzz_join_operator(); return;
+            case JOIN_PATHLIST_POST: pg_plan_fuzz_join_coster();   return;
+            default: return;
+        }
+    }
     join_recourse_level_++;
 }
 
@@ -193,8 +236,8 @@ static void pg_plan_fuzz_join_spanner (int type)
 {
     switch (type) 
     {
-        case T_HashJoin:    { pg_plan_fuzz_force_hashjoin   ();   return; };
-        case T_MergeJoin:   { pg_plan_fuzz_force_mergejoin  ();   return; };
+        case T_HashJoin:    { pg_plan_fuzz_force_hashjoin   ();   return; }
+        case T_MergeJoin:   { pg_plan_fuzz_force_mergejoin  ();   return; }
         case T_NestLoop:    { pg_plan_fuzz_force_nestloop   ();   return; }
         default:            { return; }
     }
@@ -224,8 +267,6 @@ static void pg_plan_fuzz_clear()
 {
     join_recourse_level_    = 0;
     relations_counter       = 0;
-    
-    pg_plan_fuzz_clear_join_enables();
 }
 
 static void pg_plan_fuzz_check_system_table (Oid relationObjectOid) 
@@ -414,8 +455,6 @@ static RelOptInfo *pg_plan_fuzz_join_search (
 {
     RelOptInfo  *rel;
 
-    elog (INFO, "Call join search hook");
-
     if (*is_system)         return standard_join_search(
         root, 
         levels_needed,
@@ -533,7 +572,6 @@ static void pg_plan_fuzz_relation_info_hook (
         return;
 
     relations_counter++;
-    elog (INFO, "Relations counter: %d", relations_counter);
     if (relations_counter > 2) multirelation = true;
 }
 
@@ -554,7 +592,10 @@ static void pg_plan_fuzz_set_join_pathlist_hook(
     JoinPathExtraData   *extra
 ) 
 {
-    if (prev_join_pathlist_hook) prev_join_pathlist_hook(
+    ListCell    *lc;
+    Path        *path;
+
+    if (*is_system)                 prev_join_pathlist_hook(
         root,
         joinrel,
         outerrel,
@@ -563,10 +604,50 @@ static void pg_plan_fuzz_set_join_pathlist_hook(
         extra   
     );
 
-    if (*is_system)
-        return;
+    pg_plan_fuzz_join_navigator(JOIN_PATHLIST_PREV);
 
-    pg_plan_fuzz_join_navigator(JOIN_PATHLIST);
+    elog ( INFO, "\n === Current join_pathlist_hook info === \n");
+
+    elog (
+        INFO,
+        "enable_hashjoin:\t\t%d",
+        enable_hashjoin
+    );
+
+    elog (
+        INFO,
+        "enable_mergejoin:\t%d",
+        enable_mergejoin
+    );
+
+    elog (
+        INFO,
+        "enable_nestloop:\t\t%d",
+        enable_nestloop
+    );
+
+    if (prev_join_pathlist_hook)    prev_join_pathlist_hook(
+        root,
+        joinrel,
+        outerrel,
+        innerrel,
+        jointype,
+        extra   
+    );
+
+    current_pathlist = joinrel->pathlist;
+
+    pg_plan_fuzz_join_navigator(JOIN_PATHLIST_POST);
+
+    foreach (lc, joinrel->pathlist) 
+    {
+        path = (Path*)lfirst(lc);
+        elog (
+            INFO,
+            "Added path:\t\t%s",
+            pg_plan_fuzz_node_type_to_str(path->pathtype)
+        );
+    }
 }
 
 void _PG_init (void) 
