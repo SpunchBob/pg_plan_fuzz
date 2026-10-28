@@ -21,10 +21,11 @@
 #include "optimizer/cost.h"
 #include "miscadmin.h"
 
-#include <postgresql/18/server/access/relation.h>
-#include <postgresql/18/server/catalog/catalog.h>
-#include <postgresql/18/server/nodes/nodes.h>
-#include <postgresql/18/server/nodes/parsenodes.h>
+#include "access/relation.h"
+#include "catalog/catalog.h"
+#include "nodes/nodes.h"
+#include "nodes/parsenodes.h"
+
 #include <stdbool.h>
 #include <string.h>
 
