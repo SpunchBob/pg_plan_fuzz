@@ -105,133 +105,172 @@ set enable_hashjoin = on;
 set enable_mergejoin = off;
 set enable_nestloop = off;
 
-explain ( analyze, costs off) 
+explain 
 select * from t1
-inner join t2 on t1.a = t2.c;
+join t2 on t1.a = t2.c;
+
+select * from t1
+join t2 on t1.a = t2.c;
 
 set pg_plan_fuzz.force_nestloop = on;
 
-explain ( analyze, costs off) 
+explain 
 select * from t1
-inner join t2 on t1.a = t2.c;
+join t2 on t1.a = t2.c;
+
+select * from t1
+join t2 on t1.a = t2.c;
 
 set pg_plan_fuzz.force_nestloop = off;
 
-explain ( analyze, costs off) 
+explain 
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.force_nestloop = on;
 set pg_plan_fuzz.join_recourse_level = 0;
 
-explain ( analyze, costs off) 
+explain 
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.join_recourse_level = 5;
 
-explain ( analyze, costs off) 
+explain 
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.join_recourse_level = 10;
 
-explain ( analyze, costs off) 
+explain 
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.join_recourse_level = 15;
 
-explain ( analyze, costs off) 
+explain 
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.join_recourse_level = 20;
 
-explain ( analyze, costs off) 
+explain 
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.join_recourse_level = 30;
 
-explain ( analyze, costs off) 
+explain  
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.join_recourse_level = 40;
 
-explain ( analyze, costs off) 
+explain  
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.force_nestloop = off;
 
-explain ( analyze, costs off) 
+explain  
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e
-inner join t4 on t3.e = t4.g;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
 
 set pg_plan_fuzz.force_nestloop = on;
 
-explain ( analyze, costs off) 
+explain  
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e
-inner join t4 on t3.e = t4.g;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
 
 set pg_plan_fuzz.join_recourse_level = 5;
 
-explain ( analyze, costs off) 
+explain  
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e
-inner join t4 on t3.e = t4.g;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
 
-set pg_plan_fuzz.join_recourse_level = 10;
-
-explain ( analyze, costs off) 
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e
-inner join t4 on t3.e = t4.g;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
 
-set pg_plan_fuzz.join_recourse_level = 15;
+set pg_plan_fuzz.join_recourse_level = 50;
 
-explain ( analyze, costs off) 
+explain  
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e
-inner join t4 on t3.e = t4.g;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
 
-set pg_plan_fuzz.join_recourse_level = 20;
-
-explain ( analyze, costs off) 
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e
-inner join t4 on t3.e = t4.g;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
 
-set pg_plan_fuzz.join_recourse_level = 30;
+set pg_plan_fuzz.join_recourse_level = 100;
 
-explain ( analyze, costs off) 
+explain  
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e
-inner join t4 on t3.e = t4.g;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
 
-set pg_plan_fuzz.join_recourse_level = 40;
-
-explain ( analyze, costs off) 
 select * from t1
-inner join t2 on t1.a = t2.c
-inner join t3 on t2.c = t3.e
-inner join t4 on t3.e = t4.g;
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
