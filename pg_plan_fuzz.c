@@ -182,6 +182,8 @@ static void pg_plan_fuzz_join_navigator (int pos)
         case JOIN_SEARCH:
         {
             if (!multirelation) pg_plan_fuzz_join_operator();
+            if (multirelation && join_recourse_level == 0)
+                pg_plan_fuzz_join_operator();
             return;
         }
         default: { return; }
@@ -498,10 +500,6 @@ static void pg_plan_fuzz_post_parse_anlayze (
     JumbleState *jstate
 ) 
 {
-    elog (
-        INFO,
-        "Call post parse analyze"
-    );
     if (prev_post_parse_analyzer_hook)  prev_post_parse_analyzer_hook(
         pstate,
         query,
@@ -624,25 +622,25 @@ static void pg_plan_fuzz_set_join_pathlist_hook(
 
     pg_plan_fuzz_join_navigator(JOIN_PATHLIST_PREV);
 
-    elog ( INFO, "\n === Current join_pathlist_hook info === \n");
+    // elog ( INFO, "\n === Current join_pathlist_hook info === \n");
 
-    elog (
-        INFO,
-        "enable_hashjoin:\t\t%d",
-        enable_hashjoin
-    );
+    // elog (
+    //     INFO,
+    //     "enable_hashjoin:\t\t%d",
+    //     enable_hashjoin
+    // );
 
-    elog (
-        INFO,
-        "enable_mergejoin:\t%d",
-        enable_mergejoin
-    );
+    // elog (
+    //     INFO,
+    //     "enable_mergejoin:\t%d",
+    //     enable_mergejoin
+    // );
 
-    elog (
-        INFO,
-        "enable_nestloop:\t\t%d",
-        enable_nestloop
-    );
+    // elog (
+    //     INFO,
+    //     "enable_nestloop:\t\t%d",
+    //     enable_nestloop
+    // );
 
     if (prev_join_pathlist_hook)    prev_join_pathlist_hook(
         root,
@@ -667,15 +665,15 @@ static void pg_plan_fuzz_set_join_pathlist_hook(
 
     pg_plan_fuzz_join_navigator(JOIN_PATHLIST_POST);
 
-    foreach (lc, joinrel->pathlist) 
-    {
-        path = (Path*)lfirst(lc);
-        elog (
-            INFO,
-            "Added path:\t\t%s",
-            pg_plan_fuzz_node_type_to_str(path->pathtype)
-        );
-    }
+    // foreach (lc, joinrel->pathlist) 
+    // {
+    //     path = (Path*)lfirst(lc);
+    //     elog (
+    //         INFO,
+    //         "Added path:\t\t%s",
+    //         pg_plan_fuzz_node_type_to_str(path->pathtype)
+    //     );
+    // }
 }
 
 void _PG_init (void) 
