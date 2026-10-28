@@ -224,6 +224,7 @@ join t3 on t2.c = t3.e
 join t4 on t3.e = t4.g;
 
 set pg_plan_fuzz.force_mergejoin = on;
+set pg_plan_fuzz.join_recourse_level = 0;
 
 explain  
 select * from t1
