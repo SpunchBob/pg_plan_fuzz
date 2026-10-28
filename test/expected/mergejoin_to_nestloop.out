@@ -1,0 +1,862 @@
+drop table if exists t1;
+drop table if exists t2;
+drop table if exists t3;
+drop table if exists t4;
+create table t1 
+(
+    a INT,
+    b TEXT
+);
+create table t2 
+(
+    c INT,
+    d TEXT
+);
+create table t3 
+(
+    e INT,
+    f TEXT
+);
+create table t4 
+(
+    g INT,
+    h TEXT
+);
+insert into t1
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t2
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t3
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t4
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+LOAD 'pg_plan_fuzz';
+INFO:  Initialized pg_plan_fuzz extension
+set enable_hashjoin = off;
+set enable_mergejoin = on;
+set enable_nestloop = off;
+explain 
+select * from t1
+join t2 on t1.a = t2.c;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                            QUERY PLAN                             
+-------------------------------------------------------------------
+ Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+   Merge Cond: (t1.a = t2.c)
+   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+         Sort Key: t1.a
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+         Sort Key: t2.c
+         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+(8 rows)
+
+select * from t1
+join t2 on t1.a = t2.c;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  
+----+----+----+----
+  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.force_nestloop = on;
+explain 
+select * from t1
+join t2 on t1.a = t2.c;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                            QUERY PLAN                             
+-------------------------------------------------------------------
+ Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
+   Join Filter: (t1.a = t2.c)
+   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+(5 rows)
+
+select * from t1
+join t2 on t1.a = t2.c;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  
+----+----+----+----
+  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.force_nestloop = off;
+explain 
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Merge Join  (cost=264.52..1166.28 rows=51206 width=108)
+   Merge Cond: (t3.e = t1.a)
+   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+         Sort Key: t3.e
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+               Merge Cond: (t1.a = t2.c)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t1.a
+                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t2.c
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+(14 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.force_nestloop = on;
+set pg_plan_fuzz.join_recourse_level = 0;
+explain 
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                               QUERY PLAN                                
+-------------------------------------------------------------------------
+ Nested Loop  (cost=0.00..0.00 rows=51206 width=108)
+   Join Filter: (t1.a = t3.e)
+   ->  Nested Loop  (cost=0.00..0.00 rows=8064 width=72)
+         Join Filter: (t1.a = t2.c)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+(9 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 5;
+explain 
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                               QUERY PLAN                                
+-------------------------------------------------------------------------
+ Nested Loop  (cost=176.34..0.00 rows=51206 width=108)
+   Join Filter: (t1.a = t3.e)
+   ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+         Merge Cond: (t1.a = t2.c)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t1.a
+               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t2.c
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+(12 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 10;
+explain 
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                               QUERY PLAN                                
+-------------------------------------------------------------------------
+ Nested Loop  (cost=176.34..0.00 rows=51206 width=108)
+   Join Filter: (t1.a = t3.e)
+   ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+         Merge Cond: (t1.a = t2.c)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t1.a
+               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t2.c
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+(12 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 15;
+explain 
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Nested Loop  (cost=176.34..0.00 rows=51206 width=108)
+   Join Filter: (t1.a = t2.c)
+   ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=176.34..343.99 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+               Merge Cond: (t1.a = t3.e)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t1.a
+                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t3.e
+                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+(12 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 20;
+explain 
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Nested Loop  (cost=176.34..0.00 rows=51206 width=108)
+   Join Filter: (t1.a = t2.c)
+   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=176.34..343.99 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+               Merge Cond: (t2.c = t3.e)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t2.c
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t3.e
+                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+(12 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 30;
+explain  
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Merge Join  (cost=264.52..1166.28 rows=51206 width=108)
+   Merge Cond: (t3.e = t1.a)
+   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+         Sort Key: t3.e
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+               Merge Cond: (t1.a = t2.c)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t1.a
+                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t2.c
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+(14 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 40;
+explain  
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Merge Join  (cost=264.52..1166.28 rows=51206 width=108)
+   Merge Cond: (t3.e = t1.a)
+   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+         Sort Key: t3.e
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+               Merge Cond: (t1.a = t2.c)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t1.a
+                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t2.c
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+(14 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.force_nestloop = off;
+explain  
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Merge Join  (cost=352.69..5504.60 rows=325158 width=144)
+   Merge Cond: (t1.a = t3.e)
+   ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+         Merge Cond: (t1.a = t2.c)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t1.a
+               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t2.c
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+               Merge Cond: (t3.e = t4.g)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t3.e
+                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t4.g
+                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+(19 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.force_nestloop = on;
+set pg_plan_fuzz.join_recourse_level = 0;
+explain  
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Nested Loop  (cost=0.00..0.00 rows=325158 width=144)
+   Join Filter: (t1.a = t4.g)
+   ->  Nested Loop  (cost=0.00..0.00 rows=51206 width=108)
+         Join Filter: (t1.a = t3.e)
+         ->  Nested Loop  (cost=0.00..0.00 rows=8064 width=72)
+               Join Filter: (t1.a = t2.c)
+               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+         ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+(13 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 5;
+explain  
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Nested Loop  (cost=176.34..0.00 rows=325158 width=144)
+   Join Filter: (t1.a = t4.g)
+   ->  Nested Loop  (cost=176.34..0.00 rows=51206 width=108)
+         Join Filter: (t1.a = t3.e)
+         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+               Merge Cond: (t1.a = t2.c)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t1.a
+                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t2.c
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+         ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+(16 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 50;
+explain  
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                     QUERY PLAN                                      
+-------------------------------------------------------------------------------------
+ Nested Loop  (cost=264.52..0.00 rows=325158 width=144)
+   Join Filter: (t1.a = t4.g)
+   ->  Merge Join  (cost=264.52..100000000.00 rows=51206 width=108)
+         Merge Cond: (t3.e = t1.a)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t3.e
+               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
+               ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+                     Merge Cond: (t1.a = t2.c)
+                     ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                           Sort Key: t1.a
+                           ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+                     ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                           Sort Key: t2.c
+                           ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
+         ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+(18 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 100;
+explain  
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Merge Join  (cost=352.69..5504.60 rows=325158 width=144)
+   Merge Cond: (t1.a = t3.e)
+   ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+         Merge Cond: (t1.a = t2.c)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t1.a
+               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t2.c
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+               Merge Cond: (t3.e = t4.g)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t3.e
+                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t4.g
+                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+(19 rows)
+
+select * from t1
+join t2 on t1.a = t2.c
+join t3 on t2.c = t3.e
+join t4 on t3.e = t4.g;
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
