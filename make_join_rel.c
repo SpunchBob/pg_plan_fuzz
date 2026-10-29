@@ -1,8 +1,7 @@
 /*-------------------------------------------------------------------------
  *
  * make_join_rel.c
- *	  Routines copied from PostgreSQL core distribution with some
- *	  modifications.
+ *	  Routines copied from PostgreSQL core distribution 
  *
  * src/backend/optimizer/path/joinrels.c
  *
@@ -20,37 +19,6 @@
  */
 
 /*
- * adjust_rows: tweak estimated row numbers according to the hint.
- */
-static double
-adjust_rows(double rows, RowsHint *hint)
-{
-	double		result = 0.0;	/* keep compiler quiet */
-
-	if (hint->value_type == RVT_ABSOLUTE)
-		result = hint->rows;
-	else if (hint->value_type == RVT_ADD)
-		result = rows + hint->rows;
-	else if (hint->value_type == RVT_SUB)
-		result =  rows - hint->rows;
-	else if (hint->value_type == RVT_MULTI)
-		result = rows * hint->rows;
-	else
-		Assert(false);	/* unrecognized rows value type */
-
-	hint->base.state = HINT_STATE_USED;
-	if (result < 1.0)
-		ereport(WARNING,
-				(errmsg("Force estimate to be at least one row, to avoid possible divide-by-zero when interpolating costs : %s",
-					hint->base.hint_str)));
-	result = clamp_row_est(result);
-	elog(DEBUG1, "adjusted rows %d to %d", (int) rows, (int) result);
-
-	return result;
-}
-
-
-/*
  * make_join_rel
  *	   Find or create a join RelOptInfo that represents the join of
  *	   the two given rels, and add to it path information for paths
@@ -62,6 +30,7 @@ adjust_rows(double rows, RowsHint *hint)
  * when working with outer joins, or with IN or EXISTS clauses that have been
  * turned into joins.
  */
+
 RelOptInfo *
 make_join_rel(PlannerInfo *root, RelOptInfo *rel1, RelOptInfo *rel2)
 {
@@ -122,84 +91,6 @@ make_join_rel(PlannerInfo *root, RelOptInfo *rel1, RelOptInfo *rel2)
 	joinrel = build_join_rel(root, joinrelids, rel1, rel2,
 							 sjinfo, pushed_down_joins,
 							 &restrictlist);
-
-	/* !!! START: HERE IS THE PART WHICH IS ADDED FOR PG_HINT_PLAN !!! */
-	{
-		RowsHint   *rows_hint = NULL;
-		int			i;
-		RowsHint   *justforme = NULL;
-		RowsHint   *domultiply = NULL;
-
-		/* Search for applicable rows hint for this join node */
-		for (i = 0; i < current_hint_state->num_hints[HINT_TYPE_ROWS]; i++)
-		{
-			rows_hint = current_hint_state->rows_hints[i];
-
-			/*
-			 * Skip this rows_hint if it is invalid from the first or it
-			 * doesn't target any join rels.
-			 */
-			if (!rows_hint->joinrelids ||
-				rows_hint->base.state == HINT_STATE_ERROR)
-				continue;
-
-			if (bms_equal(joinrelids, rows_hint->joinrelids))
-			{
-				/*
-				 * This joinrel is just the target of this rows_hint, so tweak
-				 * rows estimation according to the hint.
-				 */
-				justforme = rows_hint;
-			}
-			else if (!(bms_is_subset(rows_hint->joinrelids, rel1->relids) ||
-					   bms_is_subset(rows_hint->joinrelids, rel2->relids)) &&
-					 bms_is_subset(rows_hint->joinrelids, joinrelids) &&
-					 rows_hint->value_type == RVT_MULTI)
-			{
-				/*
-				 * If the rows_hint's target relids is not a subset of both of
-				 * component rels and is a subset of this joinrel, ths hint's
-				 * targets spread over both component rels. This menas that
-				 * this hint has been never applied so far and this joinrel is
-				 * the first (and only) chance to fire in current join tree.
-				 * Only the multiplication hint has the cumulative nature so we
-				 * apply only RVT_MULTI in this way.
-				 */
-				domultiply = rows_hint;
-			}
-		}
-
-		if (justforme)
-		{
-			/*
-			 * If a hint just for me is found, no other adjust method is
-			 * useles, but this cannot be more than twice becuase this joinrel
-			 * is already adjusted by this hint.
-			 */
-			if (justforme->base.state == HINT_STATE_NOTUSED)
-				joinrel->rows = adjust_rows(joinrel->rows, justforme);
-		}
-		else
-		{
-			if (domultiply)
-			{
-				/*
-				 * If we have multiple routes up to this joinrel which are not
-				 * applicable this hint, this multiply hint will applied more
-				 * than twice. But there's no means to know of that,
-				 * re-estimate the row number of this joinrel always just
-				 * before applying the hint. This is a bit different from
-				 * normal planner behavior but it doesn't harm so much.
-				 */
-				set_joinrel_size_estimates(root, joinrel, rel1, rel2, sjinfo,
-										   restrictlist);
-
-				joinrel->rows = adjust_rows(joinrel->rows, domultiply);
-			}
-
-		}
-	}
-	/* !!! END: HERE IS THE PART WHICH IS ADDED FOR PG_HINT_PLAN !!! */
 
 	/*
 	 * If we've already proven this join is empty, we needn't consider any

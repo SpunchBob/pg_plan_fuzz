@@ -1,74 +1,59 @@
-#include "c.h"
-#include "postgres.h"
+#include <string.h>
 
-#include "utils/elog.h"
-#include "fmgr.h"
-#include "nodes/pathnodes.h"
+#include "postgres.h"
+#include "access/genam.h"
+#include "access/heapam.h"
+#include "access/relation.h"
+#include "catalog/namespace.h"
+#include "catalog/pg_collation.h"
+#include "catalog/pg_index.h"
+#include "catalog/pg_proc.h"
+#include "commands/prepare.h"
+#include "commands/proclang.h"
+#include "mb/pg_wchar.h"
+#include "miscadmin.h"
+#include "nodes/nodeFuncs.h"
+#include "nodes/params.h"
+#include "optimizer/appendinfo.h"
+#include "optimizer/clauses.h"
+#include "optimizer/cost.h"
+#include "optimizer/geqo.h"
+#include "optimizer/joininfo.h"
+#include "optimizer/optimizer.h"
+#include "optimizer/pathnode.h"
 #include "optimizer/paths.h"
 #include "optimizer/plancat.h"
 #include "optimizer/planner.h"
-#include "executor/execdesc.h"
-#include "nodes/pg_list.h"
+#include "optimizer/prep.h"
+#include "optimizer/restrictinfo.h"
 #include "parser/analyze.h"
-#include "nodes/plannodes.h"
-#include "nodes/params.h"
-#include "executor/executor.h"
-#include "nodes/nodes.h"
-#include "utils/hsearch.h"
+#include "parser/parsetree.h"
+#include "parser/scansup.h"
+#include "partitioning/partbounds.h"
+#include "tcop/utility.h"
+#include "utils/backend_status.h"
+#include "utils/builtins.h"
+#include "utils/float.h"
+#include "utils/lsyscache.h"
 #include "utils/memutils.h"
-#include "utils/palloc.h"
-#include "utils/guc.h"
-#include "optimizer/cost.h"
-#include "miscadmin.h"
+#include "utils/rel.h"
+#include "utils/snapmgr.h"
+#include "utils/syscache.h"
 
-#include "access/relation.h"
-#include "catalog/catalog.h"
-#include "nodes/nodes.h"
-#include "nodes/parsenodes.h"
+#include "catalog/pg_class.h"
 
-#include <stdbool.h>
-#include <string.h>
+#include "executor/spi.h"
+#include "catalog/pg_type.h"
 
-// Other includes from `pg_hint_plan`
+#include "plpgsql.h"
 
-// #include "access/heapam.h"
-// #include "access/relation.h"
-// #include "catalog/pg_collation.h"
-// #include "catalog/pg_index.h"
-// #include "catalog/pg_proc.h"
-// #include "commands/prepare.h"
-// #include "commands/proclang.h"
-// #include "mb/pg_wchar.h"
-// #include "nodes/nodeFuncs.h"
-// #include "optimizer/appendinfo.h"
-// #include "optimizer/clauses.h"
-// #include "optimizer/geqo.h"
-// #include "optimizer/joininfo.h"
-// #include "optimizer/optimizer.h"
-// #include "optimizer/pathnode.h"
-// #include "optimizer/prep.h"
-// #include "optimizer/restrictinfo.h"
-// #include "parser/parsetree.h"
-// #include "parser/scansup.h"
-// #include "partitioning/partbounds.h"
-// #include "tcop/utility.h"
-// #include "utils/builtins.h"
-// #include "utils/float.h"
-// #include "utils/lsyscache.h"
-// #include "utils/memutils.h"
-// #include "utils/rel.h"
-// #include "utils/snapmgr.h"
-// #include "utils/syscache.h"
-// #include "catalog/pg_class.h"
-// #include "executor/spi.h"
-// #include "catalog/pg_type.h"
-
-#define JOIN_PATHLIST_PREV      1
-#define JOIN_PATHLIST_POST      2
-#define JOIN_SEARCH             3
+#define JOIN_PATHLIST           0
+#define JOIN_SEARCH             1
 #define NO                      100000000.00
 #define YES                     0.0000000001
 
+typedef unsigned int ** BITMATRIX;
+typedef unsigned int *  BITROW;
 static const int MAX_JOIN_RECOURSE_LEVEL = 1000000;
 
 PG_MODULE_MAGIC;
@@ -78,15 +63,17 @@ void _PG_init (void);
 //                                      STRUCTS
 // -----------------------------------------------------------------------------
 
-static int**        changes;
+static BITMATRIX    join_bitmatrix;
 
 static char**       scan_enables;
 static int          pointer;
 static bool*        is_system;
-static int          join_recourse_level_    = 0;
+static int          join_recourse_level_    = 1;
 static bool         multirelation           = false;
 static int          relations_counter       = 0;
 static List*        current_pathlist        = NIL;
+static List*        list_of_joinrelids      = NIL;
+static Relids       current_joinrelids      = NULL;
 
 // -----------------------------------------------------------------------------
 //                                         GUC
@@ -118,14 +105,17 @@ static int          pg_plan_fuzz_set_config_option(
                     const char* name
                     );
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
-static void         pg_plan_fuzz_join_spanner        (int type); 
+
 static void         pg_plan_fuzz_join_operator       ();
-static void         pg_plan_fuzz_join_transformator  (int pos);
+static void         pg_plan_fuzz_join_transformator  ();
 static void         pg_plan_fuzz_join_navigator      (int pos);
 static void         pg_plan_fuzz_join_coster         ();
+static void         pg_plan_fuzz_join_set_relids     (Relids bms1, Relids bms2);
+static void         pg_plan_fuzz_join_add_relids     ();
+static void         pg_plan_fuzz_join_generator      ();
+
 static void         pg_plan_fuzz_scan_spanner        (int type);
 static void         pg_plan_fuzz_scan_operator       ();
-static void         pg_plan_fuzz_generate_changes    (RelOptInfo *relinfo);
 static void         pg_plan_fuzz_init_scan_enables   ();
 static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
 static void         pg_plan_fuzz_clear               ();
@@ -136,8 +126,81 @@ static void         pg_plan_fuzz_force_hashjoin      ();
 static void         pg_plan_fuzz_force_nestloop      ();
 
 // -----------------------------------------------------------------------------
+//                          CORE STUFF - DECLARATIONS
+// -----------------------------------------------------------------------------
+
+static void         create_plain_partial_paths       (
+                    PlannerInfo *root,
+                    RelOptInfo *rel
+                    );
+static bool         has_join_restriction             (
+                    PlannerInfo *root, 
+                    RelOptInfo *rel
+                    );
+static void         make_rels_by_clause_joins        (
+                    PlannerInfo *root,
+                    RelOptInfo *old_rel,
+                    List *other_rels, 
+                    int first_rel_idx
+                    );   
+static void         make_rels_by_clauseless_joins    (
+                    PlannerInfo *root,
+                    RelOptInfo *old_rel, 
+                    List *other_rels
+                    );
+static void         free_child_join_sjinfo           (SpecialJoinInfo *sjinfo);
+static void         populate_joinrel_with_paths      (
+                    PlannerInfo *root,
+                    RelOptInfo *rel1,
+                    RelOptInfo *rel2,
+                    RelOptInfo *joinrel,
+                    SpecialJoinInfo *sjinfo,
+                    List *restrictlist
+                    );
+
+static void         add_paths_to_joinrel_wrapper    (
+                    PlannerInfo *root, 
+                    RelOptInfo *joinrel,
+                    RelOptInfo *outerrel, 
+                    RelOptInfo *innerrel,
+                    JoinType jointype, 
+                    SpecialJoinInfo *sjinfo,             
+                    List *restrictlist
+                    );
+
+static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
+                    PlannerInfo *root,
+                    RelOptInfo *rel1,
+                    RelOptInfo *rel2
+                    );
+
+// -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
+
+static void pg_plan_fuzz_join_add_relids() 
+{
+    list_of_joinrelids = lappend(
+        list_of_joinrelids,
+        current_joinrelids);
+}
+
+static void pg_plan_fuzz_join_set_relids(Relids bms1, Relids bms2) 
+{
+    Relids joinrelids;
+    joinrelids = bms_union(bms1, bms2);
+
+    if (current_joinrelids == NULL)  
+        current_joinrelids = joinrelids;
+
+    if (!bms_equal(current_joinrelids, joinrelids))
+    {
+        pg_plan_fuzz_join_add_relids();
+        pg_plan_fuzz_clear_join_enables();
+        current_joinrelids = joinrelids;
+        join_recourse_level_++;
+    }
+}
 
 static void pg_plan_fuzz_join_coster() 
 {
@@ -166,18 +229,9 @@ static void pg_plan_fuzz_join_navigator (int pos)
 {
     switch (pos) 
     {
-        case JOIN_PATHLIST_PREV: 
+        case JOIN_PATHLIST: 
         {
-            if (multirelation) pg_plan_fuzz_join_transformator(
-                JOIN_PATHLIST_PREV
-            );
-            return;
-        }
-        case JOIN_PATHLIST_POST: 
-        {
-            if (multirelation) pg_plan_fuzz_join_transformator(
-                JOIN_PATHLIST_POST
-            );
+            if (multirelation) pg_plan_fuzz_join_transformator();
             return;
         }
         case JOIN_SEARCH:
@@ -191,24 +245,28 @@ static void pg_plan_fuzz_join_navigator (int pos)
     }
 }
 
-static void pg_plan_fuzz_join_transformator (int pos) 
+static void pg_plan_fuzz_join_transformator () 
 {
-    if (join_recourse_level_ >= join_recourse_level) 
+    if (join_recourse_level_ == join_recourse_level) 
     { 
-        switch (pos) 
-        {
-            case JOIN_PATHLIST_PREV: pg_plan_fuzz_join_operator(); return;
-            case JOIN_PATHLIST_POST: pg_plan_fuzz_join_coster();   return;
-            default: return;
-        }
+        elog (
+            INFO,
+            "join_recourse_level: \t%d",
+            join_recourse_level
+        );
+        elog (
+            INFO,
+            "join_recourse_level_: \t%d",
+            join_recourse_level_
+        );
+        pg_plan_fuzz_join_operator();
     }
-    join_recourse_level_++;
 }
 
 static void pg_plan_fuzz_force_mergejoin () 
 {
     pg_plan_fuzz_set_config_option("enable_mergejoin", "on");
-    pg_plan_fuzz_set_config_option("enable_hashjoin", "off");
+    pg_plan_fuzz_set_config_option("enable_hash`join", "off");
     pg_plan_fuzz_set_config_option("enable_nestloop", "off");
 
     enable_mergejoin    = true;
@@ -249,22 +307,11 @@ static void pg_plan_fuzz_clear_join_enables ()
     pg_plan_fuzz_set_config_option("enable_nestloop", "on");
 }
 
-static void pg_plan_fuzz_join_spanner (int type) 
-{
-    switch (type) 
-    {
-        case T_HashJoin:    { pg_plan_fuzz_force_hashjoin   ();   return; }
-        case T_MergeJoin:   { pg_plan_fuzz_force_mergejoin  ();   return; }
-        case T_NestLoop:    { pg_plan_fuzz_force_nestloop   ();   return; }
-        default:            { return; }
-    }
-}
-
 static void pg_plan_fuzz_join_operator () 
 {
-    if (force_hashjoin)     pg_plan_fuzz_join_spanner(T_HashJoin);
-    if (force_mergejoin)    pg_plan_fuzz_join_spanner(T_MergeJoin);
-    if (force_nestloop)     pg_plan_fuzz_join_spanner(T_NestLoop);
+    if (force_hashjoin)     pg_plan_fuzz_force_hashjoin(); 
+    if (force_mergejoin)    pg_plan_fuzz_force_mergejoin();
+    if (force_nestloop)     pg_plan_fuzz_force_nestloop();
 }
 
 static void pg_plan_fuzz_init () 
@@ -277,14 +324,18 @@ static void pg_plan_fuzz_init ()
     is_system   = (bool*)palloc0(sizeof(bool));
     *is_system  = false;
 
+    join_bitmatrix = (BITMATRIX)palloc0(sizeof(BITMATRIX));
+
     MemoryContextSwitchTo(ccxt);
 }
 
 static void pg_plan_fuzz_clear() 
 {
-    join_recourse_level_    = 0;
+    join_recourse_level_    = 1;
     relations_counter       = 0;
     multirelation           = false;
+    current_joinrelids      = NULL;
+    list_of_joinrelids      = NIL;
     pg_plan_fuzz_clear_join_enables();
 }
 
@@ -300,15 +351,12 @@ static void pg_plan_fuzz_check_system_table (Oid relationObjectOid)
     }
 }
 
-static void pg_plan_fuzz_generate_changes (RelOptInfo *relinfo) 
+static void pg_plan_fuzz_join_generator () 
 {
-    ListCell    *lc;
-    int         all_variants;
-    
-    foreach (lc, relinfo->pathlist) 
-    {
-        
-    }
+    unsigned int combinations;
+    unsigned int pool;
+
+    if (list_of_joinrelids){}
 
 }
 
@@ -453,15 +501,6 @@ static void pg_plan_fuzz_ExecutorEnd (
     QueryDesc *queryDesc
 );
 
-static void pg_plan_fuzz_set_join_pathlist_hook(
-    PlannerInfo         *root,
-    RelOptInfo          *joinrel,
-	RelOptInfo          *outerrel,
-    RelOptInfo          *innerrel,
-    JoinType            jointype,
-    JoinPathExtraData   *extra
-);
-
 // -----------------------------------------------------------------------------
 //                              HOOKS - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
@@ -602,81 +641,56 @@ static void pg_plan_fuzz_ExecutorEnd (
     else                    standard_ExecutorEnd(queryDesc);
 }
 
-static void pg_plan_fuzz_set_join_pathlist_hook(
-    PlannerInfo         *root,
-    RelOptInfo          *joinrel,
-	RelOptInfo          *outerrel,
-    RelOptInfo          *innerrel,
-    JoinType            jointype,
-    JoinPathExtraData   *extra
-) 
+static void
+add_paths_to_joinrel_wrapper(PlannerInfo *root,
+							 RelOptInfo *joinrel,
+							 RelOptInfo *outerrel,
+							 RelOptInfo *innerrel,
+							 JoinType jointype,
+							 SpecialJoinInfo *sjinfo,
+							 List *restrictlist)
 {
-    ListCell    *lc;
-    Path        *path;
+	int				save_nestlevel;
 
-    if (*is_system)                 prev_join_pathlist_hook(
-        root,
-        joinrel,
-        outerrel,
-        innerrel,
-        jointype,
-        extra   
+    elog (INFO, "Call wraper");
+
+    save_nestlevel = NewGUCNestLevel();
+
+    pg_plan_fuzz_join_set_relids(
+        outerrel->relids,
+        innerrel->relids
     );
 
-    pg_plan_fuzz_join_navigator(JOIN_PATHLIST_PREV);
-
-    // elog ( INFO, "\n === Current join_pathlist_hook info === \n");
-
-    // elog (
-    //     INFO,
-    //     "enable_hashjoin:\t\t%d",
-    //     enable_hashjoin
-    // );
-
-    // elog (
-    //     INFO,
-    //     "enable_mergejoin:\t%d",
-    //     enable_mergejoin
-    // );
-
-    // elog (
-    //     INFO,
-    //     "enable_nestloop:\t\t%d",
-    //     enable_nestloop
-    // );
-
-    if (prev_join_pathlist_hook)    prev_join_pathlist_hook(
-        root,
-        joinrel,
-        outerrel,
-        innerrel,
-        jointype,
-        extra   
+    pg_plan_fuzz_join_transformator();
+    
+    add_paths_to_joinrel(
+        root, 
+        joinrel, 
+        outerrel, 
+        innerrel, 
+        jointype, 
+        sjinfo, 
+        restrictlist
     );
-
-    // add_paths_to_joinrel(
-    //     root, 
-    //     joinrel,
-    //     outerrel,
-    //     innerrel,
-    //     jointype,
-    //     extra->sjinfo,
-    //     extra->restrictlist
-    // );
 
     current_pathlist = joinrel->pathlist;
 
-    pg_plan_fuzz_join_navigator(JOIN_PATHLIST_POST);
+    ListCell *lc;
+    Path     *path;
 
-    // foreach (lc, joinrel->pathlist) 
-    // {
-    //     path = (Path*)lfirst(lc);
-    //     elog (
-    //         INFO,
-    //         "Added path:\t\t%s",
-    //         pg_plan_fuzz_node_type_to_str(path->pathtype)
-    //     );
-    // }
+    foreach (lc, joinrel->pathlist) 
+    {   
+        path = (Path*)lfirst(lc);
+        elog (
+            INFO, 
+            "Path type: %s",
+            pg_plan_fuzz_node_type_to_str(path->pathtype)
+        );
+    }
+
+    pg_plan_fuzz_join_coster();
+
+    AtEOXact_GUC(true, save_nestlevel);
 }
 
 void _PG_init (void) 
@@ -751,6 +765,11 @@ void _PG_init (void)
     get_relation_info_hook                  = pg_plan_fuzz_relation_info_hook;
     prev_ExecutorEnd                        = ExecutorEnd_hook;
     ExecutorEnd_hook                        = pg_plan_fuzz_ExecutorEnd;
-    prev_join_pathlist_hook                 = set_join_pathlist_hook;
-    set_join_pathlist_hook                  = pg_plan_fuzz_set_join_pathlist_hook;
 }
+
+#define make_join_rel pg_plan_fuzz_make_join_rel
+#define add_paths_to_joinrel add_paths_to_joinrel_wrapper
+#include "core.c"
+#include "make_join_rel.c"
+#undef make_join_rel
+#undef add_paths_to_joinrel
