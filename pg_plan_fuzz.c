@@ -1,9 +1,10 @@
+#include "postgres.h"
+
 #include <stdbool.h>
 #include <string.h>
 
 #include "nodes/nodes.h"
 #include "nodes/pathnodes.h"
-#include "postgres.h"
 #include "access/genam.h"
 #include "access/heapam.h"
 #include "access/relation.h"
