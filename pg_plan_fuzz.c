@@ -226,7 +226,7 @@ static void         pg_plan_fuzz_scan_coster         ()
     if (force_seqscan)          type = T_SeqScan;
     if (force_indexscan)        type = T_IndexScan;
     if (force_indexonlyscan)    type = T_IndexOnlyScan;
-    if (force_bitmapscan)       type = T_BitmapIndexScan;
+    if (force_bitmapscan)       type = T_BitmapHeapScan;
 
     if (!type) return;
 
