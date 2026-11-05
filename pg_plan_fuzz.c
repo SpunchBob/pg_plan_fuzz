@@ -230,14 +230,26 @@ static void         pg_plan_fuzz_force_seqscan       ()
     pg_plan_fuzz_set_config_option("enable_indexscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
     pg_plan_fuzz_set_config_option("enable_bitmapscan", "off");
+
+    enable_seqscan          = true;
+    enable_indexscan        = false;
+    enable_indexonlyscan    = false;
+    enable_bitmapscan       = false;
 }
 
 static void         pg_plan_fuzz_force_indexscan     () 
 {
+    elog (INFO, "Force indexscan");
+
     pg_plan_fuzz_set_config_option("enable_seqscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexscan", "on");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
     pg_plan_fuzz_set_config_option("enable_bitmapscan", "off");
+
+    enable_seqscan          = false;
+    enable_indexscan        = true;
+    enable_indexonlyscan    = false;
+    enable_bitmapscan       = false;
 }
 
 static void         pg_plan_fuzz_force_indexonlyscan () 
@@ -246,6 +258,11 @@ static void         pg_plan_fuzz_force_indexonlyscan ()
     pg_plan_fuzz_set_config_option("enable_indexscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "on");
     pg_plan_fuzz_set_config_option("enable_bitmapscan", "off");
+
+    enable_seqscan          = false;
+    enable_indexscan        = false;
+    enable_indexonlyscan    = true;
+    enable_bitmapscan       = false;
 }
 
 static void         pg_plan_fuzz_force_bitmapscan    () 
@@ -254,6 +271,11 @@ static void         pg_plan_fuzz_force_bitmapscan    ()
     pg_plan_fuzz_set_config_option("enable_indexscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
     pg_plan_fuzz_set_config_option("enable_bitmapscan", "on");
+
+    enable_seqscan          = false;
+    enable_indexscan        = false;
+    enable_indexonlyscan    = false;
+    enable_bitmapscan       = true;
 }
 
 static void pg_plan_fuzz_join_add_relids() 
@@ -662,6 +684,7 @@ static void pg_plan_fuzz_set_rel_pathlist (
     RangeTblEntry   *rte
 ) 
 {
+
     if (*is_system) 
     { 
         prev_set_rel_pathlist(
@@ -672,7 +695,7 @@ static void pg_plan_fuzz_set_rel_pathlist (
         ); 
         return; 
     }
-
+    
     pg_plan_fuzz_scan_operator();
 
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
