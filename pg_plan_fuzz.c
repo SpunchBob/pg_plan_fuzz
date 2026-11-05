@@ -130,6 +130,7 @@ static void         pg_plan_fuzz_init_scan_enables   ();
 static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
 static void         pg_plan_fuzz_clear               ();
 static void         pg_plan_fuzz_clear_join_enables  ();
+static void         pg_plan_fuzz_clear_scan_enables  ();
 static void         pg_plan_fuzz_init                ();
 
 static void         pg_plan_fuzz_force_mergejoin     ();
@@ -194,6 +195,14 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
 
+static void         pg_plan_fuzz_clear_scan_enables  () 
+{
+    pg_plan_fuzz_set_config_option("enable_seqscan", "on");
+    pg_plan_fuzz_set_config_option("enable_indexscan", "on");
+    pg_plan_fuzz_set_config_option("enable_indexonlyscan", "on");
+    pg_plan_fuzz_set_config_option("enable_bitmapscan", "on");
+} 
+
 static void         pg_plan_fuzz_scan_operator       () 
 {
     if (force_seqscan)          pg_plan_fuzz_force_seqscan();
@@ -207,6 +216,8 @@ static void         pg_plan_fuzz_scan_coster         ()
     ListCell    *lc;
     Path        *path;
     NodeTag     type;
+
+    type = 0;
 
     if (force_seqscan)          type = T_SeqScan;
     if (force_indexscan)        type = T_IndexScan;
@@ -226,6 +237,8 @@ static void         pg_plan_fuzz_scan_coster         ()
 
 static void         pg_plan_fuzz_force_seqscan       () 
 {
+    elog (INFO, "Force seqscan");
+
     pg_plan_fuzz_set_config_option("enable_seqscan", "on");
     pg_plan_fuzz_set_config_option("enable_indexscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
@@ -254,6 +267,8 @@ static void         pg_plan_fuzz_force_indexscan     ()
 
 static void         pg_plan_fuzz_force_indexonlyscan () 
 {
+    elog (INFO, "Force indexonlyscan");
+
     pg_plan_fuzz_set_config_option("enable_seqscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "on");
@@ -267,6 +282,8 @@ static void         pg_plan_fuzz_force_indexonlyscan ()
 
 static void         pg_plan_fuzz_force_bitmapscan    () 
 {
+    elog (INFO, "Force bitmapscan");
+
     pg_plan_fuzz_set_config_option("enable_seqscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
@@ -437,6 +454,7 @@ static void pg_plan_fuzz_clear()
     current_joinrelids      = NULL;
     list_of_joinrelids      = NIL;
     pg_plan_fuzz_clear_join_enables();
+    pg_plan_fuzz_clear_scan_enables();
 }
 
 static void pg_plan_fuzz_check_system_table (Oid relationObjectOid) 
@@ -687,16 +705,14 @@ static void pg_plan_fuzz_set_rel_pathlist (
 
     if (*is_system) 
     { 
-        prev_set_rel_pathlist(
+        if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
             root,
             rel,
             rti,
             rte
-        ); 
+        );
         return; 
     }
-    
-    pg_plan_fuzz_scan_operator();
 
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
@@ -717,17 +733,35 @@ static void pg_plan_fuzz_relation_info_hook (
     RelOptInfo      *rel
 ) 
 {
+    pg_plan_fuzz_check_system_table(relationObjectId);  
+    
+    if (*is_system) 
+    {
+        if (prev_get_relation_info_hook)    prev_get_relation_info_hook(
+            root,
+            relationObjectId,
+            inhparent,
+            rel
+        );
+        return;
+    }
+
+    pg_plan_fuzz_scan_operator();
+
     if (prev_get_relation_info_hook)    prev_get_relation_info_hook(
         root,
         relationObjectId,
         inhparent,
         rel
     );
-    
-    pg_plan_fuzz_check_system_table(relationObjectId);  
-    
-    if (*is_system)
-        return;
+
+    elog (INFO, "\n");
+    elog (INFO, "Enable SeqScan: %d", enable_seqscan);
+    elog (INFO, "Enable IndexScan: %d", enable_indexscan);
+    elog (INFO, "Enable IndexOnlyScan: %d", enable_indexonlyscan);
+    elog (INFO, "Enable BitmapScan: %d", enable_bitmapscan);
+
+    pg_plan_fuzz_scan_coster();
 
     relations_counter++;
     if (relations_counter > 2) multirelation = true;
@@ -752,7 +786,20 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
 {
 	int				save_nestlevel;
 
-    elog (INFO, "Call wraper");
+    if (*is_system) 
+    {
+        add_paths_to_joinrel(
+            root, 
+            joinrel, 
+            outerrel, 
+            innerrel, 
+            jointype, 
+            sjinfo, 
+            restrictlist
+        );
+
+        return;
+    }
 
     save_nestlevel = NewGUCNestLevel();
 
