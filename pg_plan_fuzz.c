@@ -1,5 +1,8 @@
+#include <stdbool.h>
 #include <string.h>
 
+#include "nodes/nodes.h"
+#include "nodes/pathnodes.h"
 #include "postgres.h"
 #include "access/genam.h"
 #include "access/heapam.h"
@@ -71,7 +74,8 @@ static bool*        is_system;
 static int          join_recourse_level_    = 1;
 static bool         multirelation           = false;
 static int          relations_counter       = 0;
-static List*        current_pathlist        = NIL;
+static List*        current_join_pathlist   = NIL;
+static List*        current_scan_pathlist   = NIL;
 static List*        list_of_joinrelids      = NIL;
 static Relids       current_joinrelids      = NULL;
 
@@ -82,6 +86,10 @@ static Relids       current_joinrelids      = NULL;
 static bool     force_hashjoin      = false;
 static bool     force_mergejoin     = false;
 static bool     force_nestloop      = false;
+static bool     force_seqscan       = false;
+static bool     force_indexscan     = false;
+static bool     force_indexonlyscan = false;
+static bool     force_bitmapscan    = false;
 static int      join_recourse_level = 0;
 
 // -----------------------------------------------------------------------------
@@ -114,16 +122,23 @@ static void         pg_plan_fuzz_join_set_relids     (Relids bms1, Relids bms2);
 static void         pg_plan_fuzz_join_add_relids     ();
 static void         pg_plan_fuzz_join_generator      ();
 
-static void         pg_plan_fuzz_scan_spanner        (int type);
 static void         pg_plan_fuzz_scan_operator       ();
+static void         pg_plan_fuzz_scan_coster         ();
+
 static void         pg_plan_fuzz_init_scan_enables   ();
 static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
 static void         pg_plan_fuzz_clear               ();
 static void         pg_plan_fuzz_clear_join_enables  ();
 static void         pg_plan_fuzz_init                ();
+
 static void         pg_plan_fuzz_force_mergejoin     ();
 static void         pg_plan_fuzz_force_hashjoin      ();
 static void         pg_plan_fuzz_force_nestloop      ();
+
+static void         pg_plan_fuzz_force_seqscan       ();
+static void         pg_plan_fuzz_force_indexscan     ();
+static void         pg_plan_fuzz_force_indexonlyscan ();
+static void         pg_plan_fuzz_force_bitmapscan    ();
 
 // -----------------------------------------------------------------------------
 //                          CORE STUFF - DECLARATIONS
@@ -178,6 +193,68 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
 
+static void         pg_plan_fuzz_scan_operator       () 
+{
+    if (force_seqscan)          pg_plan_fuzz_force_seqscan();
+    if (force_indexscan)        pg_plan_fuzz_force_indexscan();
+    if (force_indexonlyscan)    pg_plan_fuzz_force_indexonlyscan();
+    if (force_bitmapscan)       pg_plan_fuzz_force_bitmapscan();
+}
+
+static void         pg_plan_fuzz_scan_coster         () 
+{
+    ListCell    *lc;
+    Path        *path;
+    NodeTag     type;
+
+    if (force_seqscan)          type = T_SeqScan;
+    if (force_indexscan)        type = T_IndexScan;
+    if (force_indexonlyscan)    type = T_IndexOnlyScan;
+    if (force_bitmapscan)       type = T_BitmapIndexScan;
+
+    if (!type) return;
+
+    foreach (lc, current_scan_pathlist) 
+    {
+        path = (Path*)lfirst(lc);
+        if (path->pathtype == type) path->total_cost = YES;
+        else                        path->total_cost = NO;
+    }
+
+}
+
+static void         pg_plan_fuzz_force_seqscan       () 
+{
+    pg_plan_fuzz_set_config_option("enable_seqscan", "on");
+    pg_plan_fuzz_set_config_option("enable_indexscan", "off");
+    pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
+    pg_plan_fuzz_set_config_option("enable_bitmapscan", "off");
+}
+
+static void         pg_plan_fuzz_force_indexscan     () 
+{
+    pg_plan_fuzz_set_config_option("enable_seqscan", "off");
+    pg_plan_fuzz_set_config_option("enable_indexscan", "on");
+    pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
+    pg_plan_fuzz_set_config_option("enable_bitmapscan", "off");
+}
+
+static void         pg_plan_fuzz_force_indexonlyscan () 
+{
+    pg_plan_fuzz_set_config_option("enable_seqscan", "off");
+    pg_plan_fuzz_set_config_option("enable_indexscan", "off");
+    pg_plan_fuzz_set_config_option("enable_indexonlyscan", "on");
+    pg_plan_fuzz_set_config_option("enable_bitmapscan", "off");
+}
+
+static void         pg_plan_fuzz_force_bitmapscan    () 
+{
+    pg_plan_fuzz_set_config_option("enable_seqscan", "off");
+    pg_plan_fuzz_set_config_option("enable_indexscan", "off");
+    pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
+    pg_plan_fuzz_set_config_option("enable_bitmapscan", "on");
+}
+
 static void pg_plan_fuzz_join_add_relids() 
 {
     list_of_joinrelids = lappend(
@@ -216,7 +293,7 @@ static void pg_plan_fuzz_join_coster()
 
     if (type == 0)              return;
 
-    foreach (lc, current_pathlist) 
+    foreach (lc, current_join_pathlist) 
     {
         path = (Path*)lfirst(lc);
 
@@ -584,8 +661,18 @@ static void pg_plan_fuzz_set_rel_pathlist (
     RangeTblEntry   *rte
 ) 
 {
-    ListCell    *lc;
-    Path        *path;
+    if (*is_system) 
+    { 
+        prev_set_rel_pathlist(
+            root,
+            rel,
+            rti,
+            rte
+        ); 
+        return; 
+    }
+
+    pg_plan_fuzz_scan_operator();
 
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
@@ -594,20 +681,9 @@ static void pg_plan_fuzz_set_rel_pathlist (
         rte
     );
 
-    if (*is_system)
-        return;
+    current_scan_pathlist = rel->pathlist;
 
-    foreach (lc, rel->pathlist) 
-    {
-        path = (Path*)lfirst(lc);
-
-        elog(
-            INFO,
-            "Scan node: %s \t\t -> COST -- %f --",
-            pg_plan_fuzz_node_type_to_str(path->pathtype),
-            path->total_cost
-        );
-    }
+    pg_plan_fuzz_scan_coster();
 }
 
 static void pg_plan_fuzz_relation_info_hook (
@@ -673,7 +749,7 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
         restrictlist
     );
 
-    current_pathlist = joinrel->pathlist;
+    current_join_pathlist = joinrel->pathlist;
 
     ListCell *lc;
     Path     *path;
@@ -739,6 +815,58 @@ void _PG_init (void)
         NULL
     );
 
+    DefineCustomBoolVariable(
+        "pg_plan_fuzz.force_seqscan", 
+        "Force planner/optimizer to use SeqScan in plan",
+        NULL, 
+        &force_seqscan,
+        false,
+        PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
+
+    DefineCustomBoolVariable(
+        "pg_plan_fuzz.force_indexscan", 
+        "Force planner/optimizer to use IndexScan in plan",
+        NULL, 
+        &force_indexscan,
+        false,
+        PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
+
+    DefineCustomBoolVariable(
+        "pg_plan_fuzz.force_indexonlyscan", 
+        "Force planner/optimizer to use IndexOnlyScan in plan",
+        NULL, 
+        &force_indexonlyscan,
+        false,
+        PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
+
+        DefineCustomBoolVariable(
+        "pg_plan_fuzz.force_bitmapscan", 
+        "Force planner/optimizer to use BitmapScan in plan",
+        NULL, 
+        &force_bitmapscan,
+        false,
+        PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
+
     DefineCustomIntVariable(
         "pg_plan_fuzz.join_recourse_level",
         "Current query join_recourse_level",
@@ -751,7 +879,8 @@ void _PG_init (void)
         0,
         NULL,
         NULL,
-        NULL);
+        NULL
+    );
 
     prev_join_search                        = join_search_hook;
     join_search_hook                        = pg_plan_fuzz_join_search;
