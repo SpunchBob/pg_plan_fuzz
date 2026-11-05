@@ -1,5 +1,7 @@
+
 #include "postgres.h"
 
+#include "catalog/catalog.h"
 #include <stdbool.h>
 #include <string.h>
 
@@ -73,6 +75,7 @@ static char**       scan_enables;
 static int          pointer;
 static bool*        is_system;
 static int          join_recourse_level_    = 1;
+static int          scan_recourse_level_    = 1;
 static bool         multirelation           = false;
 static int          relations_counter       = 0;
 static List*        current_join_pathlist   = NIL;
@@ -92,6 +95,7 @@ static bool     force_indexscan     = false;
 static bool     force_indexonlyscan = false;
 static bool     force_bitmapscan    = false;
 static int      join_recourse_level = 0;
+static int      scan_recourse_level = 0;
 
 // -----------------------------------------------------------------------------
 //                                   HOOKS - VARS
@@ -449,10 +453,12 @@ static void pg_plan_fuzz_init ()
 static void pg_plan_fuzz_clear() 
 {
     join_recourse_level_    = 1;
+    scan_recourse_level_    = 1;
     relations_counter       = 0;
     multirelation           = false;
     current_joinrelids      = NULL;
     list_of_joinrelids      = NIL;
+    *is_system              = false;
     pg_plan_fuzz_clear_join_enables();
     pg_plan_fuzz_clear_scan_enables();
 }
@@ -464,7 +470,7 @@ static void pg_plan_fuzz_check_system_table (Oid relationObjectOid)
     if (OidIsValid(relationObjectOid)) 
     {
         rel = relation_open(relationObjectOid, NoLock);
-        if (IsSystemRelation(rel)) { *is_system = true; }
+        *is_system = IsSystemRelation(rel);
         relation_close(rel, NoLock);
     }
 }
@@ -713,6 +719,15 @@ static void pg_plan_fuzz_set_rel_pathlist (
         );
         return; 
     }
+    
+    if (scan_recourse_level_ == scan_recourse_level)
+        pg_plan_fuzz_scan_operator();
+
+    elog (INFO, "\n");
+    elog (INFO, "Enable SeqScan: %d", enable_seqscan);
+    elog (INFO, "Enable IndexScan: %d", enable_indexscan);
+    elog (INFO, "Enable IndexOnlyScan: %d", enable_indexonlyscan);
+    elog (INFO, "Enable BitmapScan: %d", enable_bitmapscan);
 
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
@@ -723,7 +738,12 @@ static void pg_plan_fuzz_set_rel_pathlist (
 
     current_scan_pathlist = rel->pathlist;
 
-    pg_plan_fuzz_scan_coster();
+    if (scan_recourse_level_ == scan_recourse_level)
+        pg_plan_fuzz_scan_coster();
+    
+    pg_plan_fuzz_clear_scan_enables();
+
+    scan_recourse_level_++;
 }
 
 static void pg_plan_fuzz_relation_info_hook (
@@ -746,22 +766,12 @@ static void pg_plan_fuzz_relation_info_hook (
         return;
     }
 
-    pg_plan_fuzz_scan_operator();
-
     if (prev_get_relation_info_hook)    prev_get_relation_info_hook(
         root,
         relationObjectId,
         inhparent,
         rel
     );
-
-    elog (INFO, "\n");
-    elog (INFO, "Enable SeqScan: %d", enable_seqscan);
-    elog (INFO, "Enable IndexScan: %d", enable_indexscan);
-    elog (INFO, "Enable IndexOnlyScan: %d", enable_indexonlyscan);
-    elog (INFO, "Enable BitmapScan: %d", enable_bitmapscan);
-
-    pg_plan_fuzz_scan_coster();
 
     relations_counter++;
     if (relations_counter > 2) multirelation = true;
@@ -785,21 +795,6 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
 							 List *restrictlist)
 {
 	int				save_nestlevel;
-
-    if (*is_system) 
-    {
-        add_paths_to_joinrel(
-            root, 
-            joinrel, 
-            outerrel, 
-            innerrel, 
-            jointype, 
-            sjinfo, 
-            restrictlist
-        );
-
-        return;
-    }
 
     save_nestlevel = NewGUCNestLevel();
 
@@ -943,6 +938,21 @@ void _PG_init (void)
         "Current query join_recourse_level",
         NULL,
         &join_recourse_level,
+        0,
+        0,
+        MAX_JOIN_RECOURSE_LEVEL,
+        PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
+
+    DefineCustomIntVariable(
+        "pg_plan_fuzz.scan_recourse_level",
+        "Current query scan_recourse_level",
+        NULL,
+        &scan_recourse_level,
         0,
         0,
         MAX_JOIN_RECOURSE_LEVEL,
