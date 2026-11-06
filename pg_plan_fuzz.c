@@ -67,9 +67,13 @@ PG_MODULE_MAGIC;
 void _PG_init (void);
 
 
-bool current_enable_hashjoin = true;
-bool current_enable_mergejoin = true;
-bool current_enable_nestloop = true;
+bool current_enable_hashjoin        = true;
+bool current_enable_mergejoin       = true;
+bool current_enable_nestloop        = true;
+bool current_enable_seqscan         = true;
+bool current_enable_indexscan       = true;
+bool current_enable_indexonlyscan   = true;
+
 
 // -----------------------------------------------------------------------------
 //                                      STRUCTS
@@ -207,9 +211,12 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 
 static void         pg_plan_fuzz_clear_scan_enables  () 
 {
-    pg_plan_fuzz_set_config_option("enable_seqscan", "on");
-    pg_plan_fuzz_set_config_option("enable_indexscan", "on");
-    pg_plan_fuzz_set_config_option("enable_indexonlyscan", "on");
+    pg_plan_fuzz_set_config_option("enable_seqscan", 
+        current_enable_seqscan ? "on" : "off");
+    pg_plan_fuzz_set_config_option("enable_indexscan", 
+        current_enable_indexscan ? "on" : "off");
+    pg_plan_fuzz_set_config_option("enable_indexonlyscan", 
+        current_enable_indexonlyscan ? "on" : "off");
     pg_plan_fuzz_set_config_option("enable_bitmapscan", "on");
 } 
 
@@ -240,8 +247,11 @@ static void         pg_plan_fuzz_scan_coster         ()
     {
         path = (Path*)lfirst(lc);
 
-        if (path->pathtype == type) path->total_cost = YES;
-        else                        path->total_cost = NO;
+        if (scan_recourse_level_ == scan_recourse_level) 
+        {
+            if (path->pathtype == type) path->total_cost = YES;
+            else                        path->total_cost = NO;
+        }
     }
 
 }
@@ -690,6 +700,10 @@ static void pg_plan_fuzz_post_parse_anlayze (
     current_enable_mergejoin = enable_mergejoin;
     current_enable_nestloop = enable_nestloop;
 
+    current_enable_seqscan          = enable_seqscan;
+    current_enable_indexscan        = enable_indexscan;
+    current_enable_indexonlyscan    = enable_indexonlyscan;
+
     if (prev_post_parse_analyzer_hook)  prev_post_parse_analyzer_hook(
         pstate,
         query,
@@ -764,10 +778,10 @@ static void pg_plan_fuzz_set_rel_pathlist (
 
     if (scan_recourse_level_ == scan_recourse_level)
         pg_plan_fuzz_scan_coster();
-    
-    pg_plan_fuzz_clear_scan_enables();
 
     scan_recourse_level_++;
+
+    pg_plan_fuzz_clear_scan_enables();
 }
 
 static void pg_plan_fuzz_relation_info_hook (
