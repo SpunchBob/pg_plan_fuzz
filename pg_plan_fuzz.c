@@ -40,6 +40,7 @@
 #include "utils/backend_status.h"
 #include "utils/builtins.h"
 #include "utils/float.h"
+#include "utils/guc.h"
 #include "utils/lsyscache.h"
 #include "utils/memutils.h"
 #include "utils/rel.h"
@@ -64,6 +65,11 @@ static const int MAX_JOIN_RECOURSE_LEVEL = 1000000;
 
 PG_MODULE_MAGIC;
 void _PG_init (void);
+
+
+bool current_enable_hashjoin = true;
+bool current_enable_mergejoin = true;
+bool current_enable_nestloop = true;
 
 // -----------------------------------------------------------------------------
 //                                      STRUCTS
@@ -233,6 +239,7 @@ static void         pg_plan_fuzz_scan_coster         ()
     foreach (lc, current_scan_pathlist) 
     {
         path = (Path*)lfirst(lc);
+
         if (path->pathtype == type) path->total_cost = YES;
         else                        path->total_cost = NO;
     }
@@ -317,7 +324,8 @@ static void pg_plan_fuzz_join_set_relids(Relids bms1, Relids bms2)
     if (!bms_equal(current_joinrelids, joinrelids))
     {
         pg_plan_fuzz_join_add_relids();
-        pg_plan_fuzz_clear_join_enables();
+        if (force_hashjoin || force_mergejoin || force_nestloop)
+            pg_plan_fuzz_clear_join_enables();
         current_joinrelids = joinrelids;
         join_recourse_level_++;
     }
@@ -341,8 +349,11 @@ static void pg_plan_fuzz_join_coster()
     {
         path = (Path*)lfirst(lc);
 
-        if (path->pathtype == type)     path->total_cost = YES;
-        else                            path->total_cost = NO;
+        if (join_recourse_level_ == join_recourse_level) 
+        {
+            if (path->pathtype == type)     path->total_cost = YES;
+            else                            path->total_cost = NO;
+        }
     }
 }
 
@@ -358,8 +369,6 @@ static void pg_plan_fuzz_join_navigator (int pos)
         case JOIN_SEARCH:
         {
             if (!multirelation) pg_plan_fuzz_join_operator();
-            if (multirelation && join_recourse_level == 0)
-                pg_plan_fuzz_join_operator();
             return;
         }
         default: { return; }
@@ -387,7 +396,7 @@ static void pg_plan_fuzz_join_transformator ()
 static void pg_plan_fuzz_force_mergejoin () 
 {
     pg_plan_fuzz_set_config_option("enable_mergejoin", "on");
-    pg_plan_fuzz_set_config_option("enable_hash`join", "off");
+    pg_plan_fuzz_set_config_option("enable_hashjoin", "off");
     pg_plan_fuzz_set_config_option("enable_nestloop", "off");
 
     enable_mergejoin    = true;
@@ -423,9 +432,20 @@ static void pg_plan_fuzz_force_nestloop ()
 
 static void pg_plan_fuzz_clear_join_enables () 
 {
-    pg_plan_fuzz_set_config_option("enable_hashjoin", "on");
-    pg_plan_fuzz_set_config_option("enable_mergejoin", "on");
-    pg_plan_fuzz_set_config_option("enable_nestloop", "on");
+
+    elog (INFO, "Current enable_hashjoin: %d"
+        , current_enable_hashjoin);
+    elog (INFO, "Current enable_mergejoin: %d",
+        current_enable_mergejoin);
+    elog (INFO, "Current enable_nestloop: %d",
+        current_enable_nestloop);
+
+    pg_plan_fuzz_set_config_option("enable_hashjoin",
+         current_enable_hashjoin ? "on" : "off");
+    pg_plan_fuzz_set_config_option("enable_mergejoin", 
+        current_enable_mergejoin ? "on" : "off");
+    pg_plan_fuzz_set_config_option("enable_nestloop", 
+        current_enable_nestloop ? "on" : "off");
 }
 
 static void pg_plan_fuzz_join_operator () 
@@ -571,7 +591,7 @@ static int pg_plan_fuzz_set_config_option (
         FlushErrorState();
 
         ereport(
-            INFO,
+            DEBUG1,
             (errcode(errdata->sqlerrcode),
              errmsg("%s", errdata->message),
              errdata->detail ? errdetail("%s", errdata->hint) : 0)
@@ -666,6 +686,10 @@ static void pg_plan_fuzz_post_parse_anlayze (
     JumbleState *jstate
 ) 
 {
+    current_enable_hashjoin = enable_hashjoin;
+    current_enable_mergejoin = enable_mergejoin;
+    current_enable_nestloop = enable_nestloop;
+
     if (prev_post_parse_analyzer_hook)  prev_post_parse_analyzer_hook(
         pstate,
         query,
@@ -831,8 +855,7 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
     }
 
     pg_plan_fuzz_join_coster();
-
-    AtEOXact_GUC(true, save_nestlevel);
+    AtEOXact_GUC(false, save_nestlevel);
 }
 
 void _PG_init (void) 
