@@ -1,0 +1,293 @@
+drop table if exists t1;
+drop table if exists t2;
+drop table if exists t3;
+drop table if exists t4;
+create table t1 
+(
+    a INT,
+    b TEXT
+);
+create table t2 
+(
+    c INT,
+    d TEXT
+);
+create table t3 
+(
+    e INT,
+    f TEXT
+);
+create table t4 
+(
+    g INT,
+    h TEXT
+);
+insert into t1
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t2
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t3
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t4
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+create index t1_idx on t1 ( a );
+create index t2_idx on t2 ( c );
+LOAD 'pg_plan_fuzz';
+INFO:  Initialized pg_plan_fuzz extension
+explain select * from t1 join t2 on t1.a = t2.c;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: HashJoin
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 1
+INFO:  Current enable_mergejoin: 1
+INFO:  Current enable_nestloop: 1
+                           QUERY PLAN                           
+----------------------------------------------------------------
+ Hash Join  (cost=1.34..2.69 rows=15 width=72)
+   Hash Cond: (t1.a = t2.c)
+   ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=36)
+   ->  Hash  (cost=1.15..1.15 rows=15 width=36)
+         ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=36)
+(5 rows)
+
+select * from t1 join t2 on t1.a = t2.c;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: HashJoin
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 1
+INFO:  Current enable_mergejoin: 1
+INFO:  Current enable_nestloop: 1
+ a  | b  | c  | d  
+----+----+----+----
+  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.force_indexscan = on;
+set pg_plan_fuzz.scan_recourse_level = 1;
+explain select * from t1 join t2 on t1.a = t2.c;
+INFO:  Force indexscan
+INFO:  
+
+INFO:  Enable SeqScan: 0
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 0
+INFO:  Enable BitmapScan: 0
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: HashJoin
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 1
+INFO:  Current enable_mergejoin: 1
+INFO:  Current enable_nestloop: 1
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Nested Loop  (cost=0.14..1.30 rows=15 width=72)
+   ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=36)
+   ->  Index Scan using t1_idx on t1  (cost=0.14..0.00 rows=1 width=36)
+         Index Cond: (a = t2.c)
+(4 rows)
+
+select * from t1 join t2 on t1.a = t2.c;
+INFO:  Force indexscan
+INFO:  
+
+INFO:  Enable SeqScan: 0
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 0
+INFO:  Enable BitmapScan: 0
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: HashJoin
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 1
+INFO:  Current enable_mergejoin: 1
+INFO:  Current enable_nestloop: 1
+ a  | b  | c  | d  
+----+----+----+----
+  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.scan_recourse_level = 2;
+explain select * from t1 join t2 on t1.a = t2.c;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Force indexscan
+INFO:  
+
+INFO:  Enable SeqScan: 0
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 0
+INFO:  Enable BitmapScan: 0
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 1
+INFO:  Current enable_mergejoin: 1
+INFO:  Current enable_nestloop: 1
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Nested Loop  (cost=0.14..1.30 rows=15 width=72)
+   ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=36)
+   ->  Index Scan using t2_idx on t2  (cost=0.14..0.00 rows=1 width=36)
+         Index Cond: (c = t1.a)
+(4 rows)
+
+select * from t1 join t2 on t1.a = t2.c;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Force indexscan
+INFO:  
+
+INFO:  Enable SeqScan: 0
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 0
+INFO:  Enable BitmapScan: 0
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 1
+INFO:  Current enable_mergejoin: 1
+INFO:  Current enable_nestloop: 1
+ a  | b  | c  | d  
+----+----+----+----
+  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15
+(15 rows)
+
