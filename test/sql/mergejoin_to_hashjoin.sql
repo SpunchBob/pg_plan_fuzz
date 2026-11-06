@@ -103,187 +103,31 @@ LOAD 'pg_plan_fuzz';
 
 set enable_hashjoin = off;
 set enable_mergejoin = on;
-set enable_nestloop = off;
+set enable_nestedloop = off;
 
-explain  
-select * from t1
-join t2 on t1.a = t2.c;
-
-select * from t1
-join t2 on t1.a = t2.c;
-
-set pg_plan_fuzz.force_hashjoin = on;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c;
-
-select * from t1
-join t2 on t1.a = t2.c;
-
-set pg_plan_fuzz.force_hashjoin = off;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-set pg_plan_fuzz.force_hashjoin = on;
 set pg_plan_fuzz.join_recourse_level = 0;
 
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-set pg_plan_fuzz.join_recourse_level = 5;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-set pg_plan_fuzz.join_recourse_level = 10;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-set pg_plan_fuzz.join_recourse_level = 15;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-set pg_plan_fuzz.join_recourse_level = 20;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-set pg_plan_fuzz.join_recourse_level = 30;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-set pg_plan_fuzz.join_recourse_level = 40;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-
-set pg_plan_fuzz.force_hashjoin = off;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.force_hashjoin = on;
-set pg_plan_fuzz.join_recourse_level = 0;
+set pg_plan_fuzz.join_recourse_level = 1;
 
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
+set pg_plan_fuzz.join_recourse_level = 2;
 
-set pg_plan_fuzz.join_recourse_level = 5;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
+set pg_plan_fuzz.join_recourse_level = 3;
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 
-set pg_plan_fuzz.join_recourse_level = 50;
 
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
+set pg_plan_fuzz.join_recourse_level = 4;
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-
-set pg_plan_fuzz.join_recourse_level = 80;
-
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-
-set pg_plan_fuzz.join_recourse_level = 100;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;

@@ -92,775 +92,749 @@ values
 ( 15, '15' );
 LOAD 'pg_plan_fuzz';
 INFO:  Initialized pg_plan_fuzz extension
+set enable_nestedloop = on;
+ERROR:  unrecognized configuration parameter "enable_nestedloop"
 set enable_hashjoin = off;
 set enable_mergejoin = off;
-set enable_nestloop = on;
-explain  
-select * from t1
-join t2 on t1.a = t2.c;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                            QUERY PLAN                             
--------------------------------------------------------------------
- Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-   Join Filter: (t1.a = t2.c)
-   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-(5 rows)
+set pg_plan_fuzz.join_recourse_level = 0;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
 
-select * from t1
-join t2 on t1.a = t2.c;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  
-----+----+----+----
-  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15
-(15 rows)
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
 
-set pg_plan_fuzz.force_hashjoin = on;
-explain  
-select * from t1
-join t2 on t1.a = t2.c;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                            QUERY PLAN                             
--------------------------------------------------------------------
- Hash Join  (cost=38.58..346.71 rows=8064 width=72)
-   Hash Cond: (t1.a = t2.c)
-   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-(5 rows)
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
 
-select * from t1
-join t2 on t1.a = t2.c;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  
-----+----+----+----
-  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15
-(15 rows)
-
-set pg_plan_fuzz.force_hashjoin = off;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                               QUERY PLAN                                
--------------------------------------------------------------------------
- Nested Loop  (cost=0.00..177887.15 rows=51206 width=108)
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Nested Loop  (cost=0.00..177887.15 rows=51206 width=60)
    Join Filter: (t1.a = t3.e)
-   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
+   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=68)
          Join Filter: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+         ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+   ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
 (9 rows)
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  
-----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+   t1    
+---------
+ (1,1)
+ (2,2)
+ (3,3)
+ (4,4)
+ (5,5)
+ (6,6)
+ (7,7)
+ (8,8)
+ (9,9)
+ (10,10)
+ (11,11)
+ (12,12)
+ (13,13)
+ (14,14)
+ (15,15)
 (15 rows)
 
 set pg_plan_fuzz.force_hashjoin = on;
 set pg_plan_fuzz.join_recourse_level = 0;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                               QUERY PLAN                                
--------------------------------------------------------------------------
- Hash Join  (cost=77.15..0.00 rows=51206 width=108)
-   Hash Cond: (t1.a = t3.e)
-   ->  Hash Join  (cost=38.58..0.00 rows=8064 width=72)
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Nested Loop  (cost=0.00..177887.15 rows=51206 width=60)
+   Join Filter: (t1.a = t3.e)
+   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=68)
+         Join Filter: (t1.a = t2.c)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+         ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+   ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+(9 rows)
+
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+   t1    
+---------
+ (1,1)
+ (2,2)
+ (3,3)
+ (4,4)
+ (5,5)
+ (6,6)
+ (7,7)
+ (8,8)
+ (9,9)
+ (10,10)
+ (11,11)
+ (12,12)
+ (13,13)
+ (14,14)
+ (15,15)
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 1;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  join_recourse_level: 	1
+INFO:  join_recourse_level_: 	1
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	1
+INFO:  join_recourse_level_: 	1
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Nested Loop  (cost=38.58..79087.03 rows=51206 width=60)
+   Join Filter: (t1.a = t3.e)
+   ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+   ->  Hash Join  (cost=38.58..0.00 rows=8064 width=68)
          Hash Cond: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-(9 rows)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+(8 rows)
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  
-----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  join_recourse_level: 	1
+INFO:  join_recourse_level_: 	1
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	1
+INFO:  join_recourse_level_: 	1
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+   t1    
+---------
+ (1,1)
+ (2,2)
+ (3,3)
+ (4,4)
+ (5,5)
+ (6,6)
+ (7,7)
+ (8,8)
+ (9,9)
+ (10,10)
+ (11,11)
+ (12,12)
+ (13,13)
+ (14,14)
+ (15,15)
 (15 rows)
 
-set pg_plan_fuzz.join_recourse_level = 5;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                               QUERY PLAN                                
--------------------------------------------------------------------------
- Hash Join  (cost=38.58..0.00 rows=51206 width=108)
-   Hash Cond: (t1.a = t3.e)
-   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-         Join Filter: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-(9 rows)
+set pg_plan_fuzz.join_recourse_level = 2;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  
-----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15
-(15 rows)
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
 
-set pg_plan_fuzz.join_recourse_level = 10;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                               QUERY PLAN                                
--------------------------------------------------------------------------
- Hash Join  (cost=38.58..0.00 rows=51206 width=108)
-   Hash Cond: (t1.a = t3.e)
-   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-         Join Filter: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-(9 rows)
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  
-----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15
-(15 rows)
-
-set pg_plan_fuzz.join_recourse_level = 15;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Hash Join  (cost=24342.88..0.00 rows=51206 width=108)
-   Hash Cond: (t2.c = t1.a)
-   ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=24242.08..24242.08 rows=8064 width=72)
-         ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-               Join Filter: (t1.a = t3.e)
-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-               ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-(9 rows)
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  
-----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15
-(15 rows)
-
-set pg_plan_fuzz.join_recourse_level = 20;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Hash Join  (cost=24342.88..0.00 rows=51206 width=108)
-   Hash Cond: (t1.a = t2.c)
-   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=24242.08..24242.08 rows=8064 width=72)
-         ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-               Join Filter: (t2.c = t3.e)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-               ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-(9 rows)
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  
-----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15
-(15 rows)
-
-set pg_plan_fuzz.join_recourse_level = 30;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                               QUERY PLAN                                
--------------------------------------------------------------------------
- Nested Loop  (cost=0.00..177887.15 rows=51206 width=108)
-   Join Filter: (t1.a = t3.e)
-   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-         Join Filter: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-(9 rows)
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  
-----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15
-(15 rows)
-
-set pg_plan_fuzz.join_recourse_level = 40;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                               QUERY PLAN                                
--------------------------------------------------------------------------
- Nested Loop  (cost=0.00..177887.15 rows=51206 width=108)
-   Join Filter: (t1.a = t3.e)
-   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-         Join Filter: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-(9 rows)
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  
-----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15
-(15 rows)
-
-set pg_plan_fuzz.force_hashjoin = off;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Nested Loop  (cost=0.00..1023925.75 rows=325158 width=144)
-   Join Filter: (t1.a = t3.e)
-   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-         Join Filter: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Materialize  (cost=0.00..24282.40 rows=8064 width=72)
-         ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-               Join Filter: (t3.e = t4.g)
-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-               ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
-(13 rows)
-
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  | g  | h  
-----+----+----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
-(15 rows)
-
-set pg_plan_fuzz.force_hashjoin = on;
-set pg_plan_fuzz.join_recourse_level = 0;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Hash Join  (cost=115.73..0.00 rows=325158 width=144)
-   Hash Cond: (t1.a = t4.g)
-   ->  Hash Join  (cost=77.15..0.00 rows=51206 width=108)
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  join_recourse_level: 	2
+INFO:  join_recourse_level_: 	2
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	2
+INFO:  join_recourse_level_: 	2
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Nested Loop  (cost=38.58..79087.03 rows=51206 width=60)
+   Join Filter: (t1.a = t2.c)
+   ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+   ->  Hash Join  (cost=38.58..0.00 rows=8064 width=68)
          Hash Cond: (t1.a = t3.e)
-         ->  Hash Join  (cost=38.58..0.00 rows=8064 width=72)
-               Hash Cond: (t1.a = t2.c)
-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-               ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-         ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
-(13 rows)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+(8 rows)
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  | g  | h  
-----+----+----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  join_recourse_level: 	2
+INFO:  join_recourse_level_: 	2
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	2
+INFO:  join_recourse_level_: 	2
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+   t1    
+---------
+ (1,1)
+ (2,2)
+ (3,3)
+ (4,4)
+ (5,5)
+ (6,6)
+ (7,7)
+ (8,8)
+ (9,9)
+ (10,10)
+ (11,11)
+ (12,12)
+ (13,13)
+ (14,14)
+ (15,15)
 (15 rows)
 
-set pg_plan_fuzz.join_recourse_level = 5;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Hash Join  (cost=77.15..0.00 rows=325158 width=144)
-   Hash Cond: (t1.a = t4.g)
-   ->  Hash Join  (cost=38.58..0.00 rows=51206 width=108)
-         Hash Cond: (t1.a = t3.e)
-         ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-               Join Filter: (t1.a = t2.c)
-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-               ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-         ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
-(13 rows)
+set pg_plan_fuzz.join_recourse_level = 3;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  | g  | h  
-----+----+----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  join_recourse_level: 	3
+INFO:  join_recourse_level_: 	3
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	3
+INFO:  join_recourse_level_: 	3
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Nested Loop  (cost=38.58..79087.03 rows=51206 width=60)
+   Join Filter: (t1.a = t2.c)
+   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+   ->  Hash Join  (cost=38.58..0.00 rows=8064 width=8)
+         Hash Cond: (t2.c = t3.e)
+         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+(8 rows)
+
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  join_recourse_level: 	3
+INFO:  join_recourse_level_: 	3
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	3
+INFO:  join_recourse_level_: 	3
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+   t1    
+---------
+ (1,1)
+ (2,2)
+ (3,3)
+ (4,4)
+ (5,5)
+ (6,6)
+ (7,7)
+ (8,8)
+ (9,9)
+ (10,10)
+ (11,11)
+ (12,12)
+ (13,13)
+ (14,14)
+ (15,15)
 (15 rows)
 
-set pg_plan_fuzz.join_recourse_level = 50;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Hash Join  (cost=38.58..0.00 rows=325158 width=144)
-   Hash Cond: (t1.a = t4.g)
-   ->  Nested Loop  (cost=0.00..100000000.00 rows=51206 width=108)
-         Join Filter: (t1.a = t3.e)
-         ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-               Join Filter: (t1.a = t2.c)
-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-               ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
-         ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
-(13 rows)
+set pg_plan_fuzz.join_recourse_level = 4;
+explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  | g  | h  
-----+----+----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
-(15 rows)
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
 
-set pg_plan_fuzz.join_recourse_level = 80;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                                     QUERY PLAN                                      
--------------------------------------------------------------------------------------
- Hash Join  (cost=178527.23..0.00 rows=325158 width=144)
-   Hash Cond: (t2.c = t1.a)
-   ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Hash  (cost=177887.15..177887.15 rows=51206 width=108)
-         ->  Nested Loop  (cost=0.00..177887.15 rows=51206 width=108)
-               Join Filter: (t1.a = t4.g)
-               ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-                     Join Filter: (t1.a = t3.e)
-                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-                     ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-                           ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-               ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
-(13 rows)
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  | g  | h  
-----+----+----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
-(15 rows)
-
-set pg_plan_fuzz.join_recourse_level = 100;
-explain  
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Nested Loop  (cost=0.00..1023925.75 rows=325158 width=144)
-   Join Filter: (t1.a = t3.e)
-   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Hash Join  (cost=38.58..0.00 rows=51206 width=60)
+   Hash Cond: (t1.a = t3.e)
+   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=68)
          Join Filter: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
-   ->  Materialize  (cost=0.00..24282.40 rows=8064 width=72)
-         ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=72)
-               Join Filter: (t3.e = t4.g)
-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
-               ->  Materialize  (cost=0.00..29.05 rows=1270 width=36)
-                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
-(13 rows)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+         ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+   ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+(9 rows)
 
-select * from t1
-join t2 on t1.a = t2.c
-join t3 on t2.c = t3.e
-join t4 on t3.e = t4.g;
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
-INFO:  Scan node: SeqScan 		 -> COST -- 22.700000 --
- a  | b  | c  | d  | e  | f  | g  | h  
-----+----+----+----+----+----+----+----
-  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
-  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
-  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
-  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
-  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
-  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
-  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
-  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
-  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
- 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
- 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
- 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
- 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
- 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
- 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  
+
+INFO:  Enable SeqScan: 1
+INFO:  Enable IndexScan: 1
+INFO:  Enable IndexOnlyScan: 1
+INFO:  Enable BitmapScan: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  Path type: NestLoop
+INFO:  Path type: NestLoop
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  join_recourse_level: 	4
+INFO:  join_recourse_level_: 	4
+INFO:  Path type: HashJoin
+INFO:  Current enable_hashjoin: 0
+INFO:  Current enable_mergejoin: 0
+INFO:  Current enable_nestloop: 1
+   t1    
+---------
+ (1,1)
+ (2,2)
+ (3,3)
+ (4,4)
+ (5,5)
+ (6,6)
+ (7,7)
+ (8,8)
+ (9,9)
+ (10,10)
+ (11,11)
+ (12,12)
+ (13,13)
+ (14,14)
+ (15,15)
 (15 rows)
 
