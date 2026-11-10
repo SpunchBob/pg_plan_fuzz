@@ -105,6 +105,7 @@ static bool     force_indexonlyscan = false;
 static bool     force_bitmapscan    = false;
 static int      join_recourse_level = 0;
 static int      scan_recourse_level = 0;
+static bool     logging_mode        = false;
 
 // -----------------------------------------------------------------------------
 //                                   HOOKS - VARS
@@ -116,7 +117,6 @@ static planner_hook_type                prev_planner = NULL;
 static set_rel_pathlist_hook_type       prev_set_rel_pathlist = NULL;
 static get_relation_info_hook_type      prev_get_relation_info_hook = NULL;
 static ExecutorEnd_hook_type            prev_ExecutorEnd = NULL;
-static set_join_pathlist_hook_type      prev_join_pathlist_hook = NULL;
 
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - DECLARATIONS
@@ -257,8 +257,6 @@ static void         pg_plan_fuzz_scan_coster         ()
 
 static void         pg_plan_fuzz_force_seqscan       () 
 {
-    elog (INFO, "Force seqscan");
-
     pg_plan_fuzz_set_config_option("enable_seqscan", "on");
     pg_plan_fuzz_set_config_option("enable_indexscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
@@ -272,8 +270,6 @@ static void         pg_plan_fuzz_force_seqscan       ()
 
 static void         pg_plan_fuzz_force_indexscan     () 
 {
-    elog (INFO, "Force indexscan");
-
     pg_plan_fuzz_set_config_option("enable_seqscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexscan", "on");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
@@ -287,8 +283,6 @@ static void         pg_plan_fuzz_force_indexscan     ()
 
 static void         pg_plan_fuzz_force_indexonlyscan () 
 {
-    elog (INFO, "Force indexonlyscan");
-
     pg_plan_fuzz_set_config_option("enable_seqscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "on");
@@ -302,8 +296,6 @@ static void         pg_plan_fuzz_force_indexonlyscan ()
 
 static void         pg_plan_fuzz_force_bitmapscan    () 
 {
-    elog (INFO, "Force bitmapscan");
-
     pg_plan_fuzz_set_config_option("enable_seqscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexscan", "off");
     pg_plan_fuzz_set_config_option("enable_indexonlyscan", "off");
@@ -647,12 +639,13 @@ static RelOptInfo *pg_plan_fuzz_join_search (
 ) 
 {
     RelOptInfo  *rel;
-
+    
     if (*is_system)         return standard_join_search(
         root, 
         levels_needed,
         initial_rels
     );
+
 
     pg_plan_fuzz_join_navigator(JOIN_SEARCH);
 
@@ -701,6 +694,13 @@ static PlannedStmt *pg_plan_fuzz_planner (
 {
     PlannedStmt *result;
 
+    if (logging_mode) 
+    { 
+        elog (INFO, "-----------------------------------------------------------------------------");
+        elog (INFO, "                         LOGGING INFORMATION START");
+        elog (INFO, "-----------------------------------------------------------------------------");
+    }
+
     if (prev_planner)   result = prev_planner(
         parse,
         query_string,
@@ -714,6 +714,13 @@ static PlannedStmt *pg_plan_fuzz_planner (
         cursorOptions, 
         boundParams
     );
+
+    if (logging_mode)
+    {
+        elog (INFO, "-----------------------------------------------------------------------------");
+        elog (INFO, "                         LOGGING INFORMATION END");
+        elog (INFO, "-----------------------------------------------------------------------------");
+    }
 
     pg_plan_fuzz_clear();
 
@@ -739,14 +746,18 @@ static void pg_plan_fuzz_set_rel_pathlist (
         return; 
     }
     
+    
     if (scan_recourse_level_ == scan_recourse_level)
         pg_plan_fuzz_scan_operator();
 
-    elog (INFO, "Enable SeqScan:\t\t\t%d", enable_seqscan);
-    elog (INFO, "Enable IndexScan:\t\t%d", enable_indexscan);
-    elog (INFO, "Enable IndexOnlyScan:\t\t%d", enable_indexonlyscan);
-    elog (INFO, "Enable BitmapScan:\t\t%d", enable_bitmapscan);
-    elog (INFO, "\n");
+    if (logging_mode) 
+    {
+        elog (INFO, "Enable SeqScan:\t\t\t%d", enable_seqscan);
+        elog (INFO, "Enable IndexScan:\t\t%d", enable_indexscan);
+        elog (INFO, "Enable IndexOnlyScan:\t\t%d", enable_indexonlyscan);
+        elog (INFO, "Enable BitmapScan:\t\t%d", enable_bitmapscan);
+        elog (INFO, "\n");
+    }
     
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
@@ -802,6 +813,7 @@ static void pg_plan_fuzz_ExecutorEnd (
 {
     if (prev_ExecutorEnd)   prev_ExecutorEnd(queryDesc);
     else                    standard_ExecutorEnd(queryDesc);
+
 }
 
 static void
@@ -839,17 +851,21 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
     {
         current_join_pathlist = joinrel->pathlist;
 
-        ListCell *lc;
-        Path     *path;
+        if (logging_mode) 
+        {
 
-        foreach (lc, joinrel->pathlist) 
-        {   
-            path = (Path*)lfirst(lc);
-            elog (
-                INFO, 
-                "Path type:\t\t\t%s",
-                pg_plan_fuzz_node_type_to_str(path->pathtype)
-            );
+            ListCell *lc;
+            Path     *path;
+
+            foreach (lc, joinrel->pathlist) 
+            {   
+                path = (Path*)lfirst(lc);
+                elog (
+                    INFO, 
+                    "Path type:\t\t\t%s",
+                    pg_plan_fuzz_node_type_to_str(path->pathtype)
+                );
+            }
         }
 
         pg_plan_fuzz_join_coster();
@@ -864,6 +880,19 @@ void _PG_init (void)
 
     pg_plan_fuzz_init_scan_enables();
     pg_plan_fuzz_init();
+
+    DefineCustomBoolVariable(
+        "pg_plan_fuzz.logging_mode", 
+        "Turn on | off logs",
+        NULL, 
+        &logging_mode,
+        false,
+        PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
 
     DefineCustomBoolVariable(
         "pg_plan_fuzz.force_hashjoin", 
