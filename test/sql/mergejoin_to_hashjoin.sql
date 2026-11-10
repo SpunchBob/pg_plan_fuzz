@@ -101,6 +101,8 @@ values
 
 LOAD 'pg_plan_fuzz';
 
+set pg_plan_fuzz.logging_mode = on;
+
 set enable_hashjoin = off;
 set enable_mergejoin = on;
 set enable_nestedloop = off;

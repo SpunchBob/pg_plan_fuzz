@@ -104,6 +104,8 @@ create index t2_idx on t2 ( c );
 
 LOAD 'pg_plan_fuzz';
 
+set pg_plan_fuzz.logging_mode = on;
+
 explain select * from t1 join t2 on t1.a = t2.c;
 select * from t1 join t2 on t1.a = t2.c;
 
