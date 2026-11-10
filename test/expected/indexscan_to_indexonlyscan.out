@@ -1,0 +1,194 @@
+drop table if exists t1;
+drop table if exists t2;
+drop table if exists t3;
+drop table if exists t4;
+create table t1 
+(
+    a INT,
+    b TEXT
+);
+create table t2 
+(
+    c INT,
+    d TEXT
+);
+create table t3 
+(
+    e INT,
+    f TEXT
+);
+create table t4 
+(
+    g INT,
+    h TEXT
+);
+insert into t1
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t2
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t3
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t4
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+create index t1_idx_a on t1 ( a ) ;
+create index t1_idx_b on t1 ( b ) ;
+create index t2_idx_c on t2 ( c ) ;
+create index t2_idx_d on t2 ( d ) ;
+LOAD 'pg_plan_fuzz';
+INFO:  -----------------------------------------------------------------------------
+INFO:                           PG_PLAN_FUZZ EXTENSION INIT
+INFO:  -----------------------------------------------------------------------------
+set enable_indexonlyscan = off;
+explain select t1.a from t1 join t2 on t1.a = t2.c;
+                          QUERY PLAN                           
+---------------------------------------------------------------
+ Hash Join  (cost=1.34..2.69 rows=15 width=4)
+   Hash Cond: (t1.a = t2.c)
+   ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=4)
+   ->  Hash  (cost=1.15..1.15 rows=15 width=4)
+         ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=4)
+(5 rows)
+
+select t1.a from t1 join t2 on t1.a = t2.c;
+ a  
+----
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+(15 rows)
+
+set pg_plan_fuzz.force_indexonlyscan = on;
+set pg_plan_fuzz.scan_recourse_level = 1;
+explain select t1.a from t1 join t2 on t1.a = t2.c;
+                          QUERY PLAN                           
+---------------------------------------------------------------
+ Hash Join  (cost=1.34..101.54 rows=15 width=4)
+   Hash Cond: (t1.a = t2.c)
+   ->  Seq Scan on t1  (cost=0.00..100.00 rows=15 width=4)
+   ->  Hash  (cost=1.15..1.15 rows=15 width=4)
+         ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=4)
+(5 rows)
+
+select t1.a from t1 join t2 on t1.a = t2.c;
+ a  
+----
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+(15 rows)
+
+set pg_plan_fuzz.scan_recourse_level = 2;
+explain select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
+                          QUERY PLAN                           
+---------------------------------------------------------------
+ Hash Join  (cost=1.34..101.54 rows=15 width=8)
+   Hash Cond: (t2.c = t1.a)
+   ->  Seq Scan on t2  (cost=0.00..100.00 rows=15 width=4)
+   ->  Hash  (cost=1.15..1.15 rows=15 width=4)
+         ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=4)
+(5 rows)
+
+select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
+ a  | c  
+----+----
+  1 |  1
+  2 |  2
+  3 |  3
+  4 |  4
+  5 |  5
+  6 |  6
+  7 |  7
+  8 |  8
+  9 |  9
+ 10 | 10
+ 11 | 11
+ 12 | 12
+ 13 | 13
+ 14 | 14
+ 15 | 15
+(15 rows)
+

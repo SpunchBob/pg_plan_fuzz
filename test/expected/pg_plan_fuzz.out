@@ -1,2 +1,4 @@
 LOAD 'pg_plan_fuzz';
-INFO:  Initialized pg_plan_fuzz extension
+INFO:  -----------------------------------------------------------------------------
+INFO:                           PG_PLAN_FUZZ EXTENSION INIT
+INFO:  -----------------------------------------------------------------------------

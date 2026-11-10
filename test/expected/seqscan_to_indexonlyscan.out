@@ -93,22 +93,31 @@ values
 create index t1_idx on t1 ( a );
 create index t2_idx on t2 ( c );
 LOAD 'pg_plan_fuzz';
-INFO:  Initialized pg_plan_fuzz extension
+INFO:  -----------------------------------------------------------------------------
+INFO:                           PG_PLAN_FUZZ EXTENSION INIT
+INFO:  -----------------------------------------------------------------------------
+set pg_plan_fuzz.logging_mode = on;
 explain select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
-INFO:  Enable SeqScan:			1
-INFO:  Enable IndexScan:		1
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		1
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			1
-INFO:  Enable IndexScan:		1
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		1
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
 INFO:  
 
 INFO:  Path type:			HashJoin
 INFO:  Path type:			HashJoin
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
                           QUERY PLAN                           
 ---------------------------------------------------------------
  Hash Join  (cost=1.34..2.69 rows=15 width=8)
@@ -119,20 +128,26 @@ INFO:  Path type:			HashJoin
 (5 rows)
 
 select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
-INFO:  Enable SeqScan:			1
-INFO:  Enable IndexScan:		1
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		1
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			1
-INFO:  Enable IndexScan:		1
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		1
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
 INFO:  
 
 INFO:  Path type:			HashJoin
 INFO:  Path type:			HashJoin
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
  a  | c  
 ----+----
   1 |  1
@@ -155,21 +170,26 @@ INFO:  Path type:			HashJoin
 set pg_plan_fuzz.force_indexonlyscan = on;
 set pg_plan_fuzz.scan_recourse_level = 1;
 explain select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
-INFO:  Force indexonlyscan
-INFO:  Enable SeqScan:			0
-INFO:  Enable IndexScan:		0
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		0
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		Off
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		Off
 INFO:  
 
-INFO:  Enable SeqScan:			1
-INFO:  Enable IndexScan:		1
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		1
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
 INFO:  
 
 INFO:  Path type:			HashJoin
 INFO:  Path type:			NestLoop
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
                                  QUERY PLAN                                 
 ----------------------------------------------------------------------------
  Nested Loop  (cost=0.14..1.30 rows=15 width=8)
@@ -179,21 +199,26 @@ INFO:  Path type:			NestLoop
 (4 rows)
 
 select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
-INFO:  Force indexonlyscan
-INFO:  Enable SeqScan:			0
-INFO:  Enable IndexScan:		0
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		0
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		Off
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		Off
 INFO:  
 
-INFO:  Enable SeqScan:			1
-INFO:  Enable IndexScan:		1
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		1
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
 INFO:  
 
 INFO:  Path type:			HashJoin
 INFO:  Path type:			NestLoop
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
  a  | c  
 ----+----
   1 |  1
@@ -215,21 +240,26 @@ INFO:  Path type:			NestLoop
 
 set pg_plan_fuzz.scan_recourse_level = 2;
 explain select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
-INFO:  Enable SeqScan:			1
-INFO:  Enable IndexScan:		1
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		1
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Force indexonlyscan
-INFO:  Enable SeqScan:			0
-INFO:  Enable IndexScan:		0
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		0
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		Off
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		Off
 INFO:  
 
 INFO:  Path type:			NestLoop
 INFO:  Path type:			NestLoop
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
                                  QUERY PLAN                                 
 ----------------------------------------------------------------------------
  Nested Loop  (cost=0.14..1.30 rows=15 width=8)
@@ -239,21 +269,26 @@ INFO:  Path type:			NestLoop
 (4 rows)
 
 select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
-INFO:  Enable SeqScan:			1
-INFO:  Enable IndexScan:		1
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		1
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Force indexonlyscan
-INFO:  Enable SeqScan:			0
-INFO:  Enable IndexScan:		0
-INFO:  Enable IndexOnlyScan:		1
-INFO:  Enable BitmapScan:		0
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		Off
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		Off
 INFO:  
 
 INFO:  Path type:			NestLoop
 INFO:  Path type:			NestLoop
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
  a  | c  
 ----+----
   1 |  1

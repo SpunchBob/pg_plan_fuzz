@@ -1,0 +1,310 @@
+drop table if exists t1;
+drop table if exists t2;
+drop table if exists t3;
+drop table if exists t4;
+create table t1 
+(
+    a INT,
+    b TEXT
+);
+create table t2 
+(
+    c INT,
+    d TEXT
+);
+create table t3 
+(
+    e INT,
+    f TEXT
+);
+create table t4 
+(
+    g INT,
+    h TEXT
+);
+insert into t1
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t2
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t3
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t4
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+create index t1_idx on t1 ( a );
+create index t2_idx on t2 ( c );
+LOAD 'pg_plan_fuzz';
+INFO:  -----------------------------------------------------------------------------
+INFO:                           PG_PLAN_FUZZ EXTENSION INIT
+INFO:  -----------------------------------------------------------------------------
+set pg_plan_fuzz.logging_mode = on;
+set enable_seqscan = off;
+explain select * from t1 join t2 on t1.a = t2.c;
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Path type:			MergeJoin
+INFO:  Path type:			MergeJoin
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
+                                QUERY PLAN                                
+--------------------------------------------------------------------------
+ Merge Join  (cost=0.27..24.94 rows=15 width=72)
+   Merge Cond: (t1.a = t2.c)
+   ->  Index Scan using t1_idx on t1  (cost=0.14..12.36 rows=15 width=36)
+   ->  Index Scan using t2_idx on t2  (cost=0.14..12.36 rows=15 width=36)
+(4 rows)
+
+select * from t1 join t2 on t1.a = t2.c;
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Path type:			MergeJoin
+INFO:  Path type:			MergeJoin
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
+ a  | b  | c  | d  
+----+----+----+----
+  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.force_seqscan = on;
+set pg_plan_fuzz.scan_recourse_level = 1;
+explain select * from t1 join t2 on t1.a = t2.c;
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		Off
+INFO:  Enable IndexOnlyScan:		Off
+INFO:  Enable BitmapScan:		Off
+INFO:  
+
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Path type:			MergeJoin
+INFO:  Path type:			MergeJoin
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
+                                QUERY PLAN                                 
+---------------------------------------------------------------------------
+ Merge Join  (cost=0.27..112.58 rows=15 width=72)
+   Merge Cond: (t1.a = t2.c)
+   ->  Index Scan using t1_idx on t1  (cost=0.14..100.00 rows=15 width=36)
+   ->  Index Scan using t2_idx on t2  (cost=0.14..12.36 rows=15 width=36)
+(4 rows)
+
+select * from t1 join t2 on t1.a = t2.c;
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		Off
+INFO:  Enable IndexOnlyScan:		Off
+INFO:  Enable BitmapScan:		Off
+INFO:  
+
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Path type:			MergeJoin
+INFO:  Path type:			MergeJoin
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
+ a  | b  | c  | d  
+----+----+----+----
+  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.scan_recourse_level = 2;
+explain select * from t1 join t2 on t1.a = t2.c;
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		Off
+INFO:  Enable IndexOnlyScan:		Off
+INFO:  Enable BitmapScan:		Off
+INFO:  
+
+INFO:  Path type:			MergeJoin
+INFO:  Path type:			MergeJoin
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
+                                QUERY PLAN                                 
+---------------------------------------------------------------------------
+ Merge Join  (cost=0.27..112.58 rows=15 width=72)
+   Merge Cond: (t1.a = t2.c)
+   ->  Index Scan using t1_idx on t1  (cost=0.14..12.36 rows=15 width=36)
+   ->  Index Scan using t2_idx on t2  (cost=0.14..100.00 rows=15 width=36)
+(4 rows)
+
+select * from t1 join t2 on t1.a = t2.c;
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION START
+INFO:  -----------------------------------------------------------------------------
+INFO:  Enable SeqScan:			Off
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		Off
+INFO:  Enable IndexOnlyScan:		Off
+INFO:  Enable BitmapScan:		Off
+INFO:  
+
+INFO:  Path type:			MergeJoin
+INFO:  Path type:			MergeJoin
+INFO:  -----------------------------------------------------------------------------
+INFO:                           LOGGING INFORMATION END
+INFO:  -----------------------------------------------------------------------------
+ a  | b  | c  | d  
+----+----+----+----
+  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15
+(15 rows)
+
