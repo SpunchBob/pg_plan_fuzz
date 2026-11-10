@@ -66,7 +66,6 @@ static const int MAX_JOIN_RECOURSE_LEVEL = 1000000;
 PG_MODULE_MAGIC;
 void _PG_init (void);
 
-
 bool current_enable_hashjoin        = true;
 bool current_enable_mergejoin       = true;
 bool current_enable_nestloop        = true;
@@ -389,16 +388,6 @@ static void pg_plan_fuzz_join_transformator ()
 {
     if (join_recourse_level_ == join_recourse_level) 
     { 
-        elog (
-            INFO,
-            "join_recourse_level: \t%d",
-            join_recourse_level
-        );
-        elog (
-            INFO,
-            "join_recourse_level_: \t%d",
-            join_recourse_level_
-        );
         pg_plan_fuzz_join_operator();
     }
 }
@@ -442,14 +431,6 @@ static void pg_plan_fuzz_force_nestloop ()
 
 static void pg_plan_fuzz_clear_join_enables () 
 {
-
-    elog (INFO, "Current enable_hashjoin: %d"
-        , current_enable_hashjoin);
-    elog (INFO, "Current enable_mergejoin: %d",
-        current_enable_mergejoin);
-    elog (INFO, "Current enable_nestloop: %d",
-        current_enable_nestloop);
-
     pg_plan_fuzz_set_config_option("enable_hashjoin",
          current_enable_hashjoin ? "on" : "off");
     pg_plan_fuzz_set_config_option("enable_mergejoin", 
@@ -761,12 +742,12 @@ static void pg_plan_fuzz_set_rel_pathlist (
     if (scan_recourse_level_ == scan_recourse_level)
         pg_plan_fuzz_scan_operator();
 
+    elog (INFO, "Enable SeqScan:\t\t\t%d", enable_seqscan);
+    elog (INFO, "Enable IndexScan:\t\t%d", enable_indexscan);
+    elog (INFO, "Enable IndexOnlyScan:\t\t%d", enable_indexonlyscan);
+    elog (INFO, "Enable BitmapScan:\t\t%d", enable_bitmapscan);
     elog (INFO, "\n");
-    elog (INFO, "Enable SeqScan: %d", enable_seqscan);
-    elog (INFO, "Enable IndexScan: %d", enable_indexscan);
-    elog (INFO, "Enable IndexOnlyScan: %d", enable_indexonlyscan);
-    elog (INFO, "Enable BitmapScan: %d", enable_bitmapscan);
-
+    
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
         rel,
@@ -833,15 +814,16 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
 							 List *restrictlist)
 {
 	int				save_nestlevel;
-
     save_nestlevel = NewGUCNestLevel();
+    if (!*is_system)
+    {
+        pg_plan_fuzz_join_set_relids(
+            outerrel->relids,
+            innerrel->relids
+        );
 
-    pg_plan_fuzz_join_set_relids(
-        outerrel->relids,
-        innerrel->relids
-    );
-
-    pg_plan_fuzz_join_transformator();
+        pg_plan_fuzz_join_transformator();
+    }
     
     add_paths_to_joinrel(
         root, 
@@ -853,22 +835,26 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
         restrictlist
     );
 
-    current_join_pathlist = joinrel->pathlist;
+    if (!*is_system)
+    {
+        current_join_pathlist = joinrel->pathlist;
 
-    ListCell *lc;
-    Path     *path;
+        ListCell *lc;
+        Path     *path;
 
-    foreach (lc, joinrel->pathlist) 
-    {   
-        path = (Path*)lfirst(lc);
-        elog (
-            INFO, 
-            "Path type: %s",
-            pg_plan_fuzz_node_type_to_str(path->pathtype)
-        );
+        foreach (lc, joinrel->pathlist) 
+        {   
+            path = (Path*)lfirst(lc);
+            elog (
+                INFO, 
+                "Path type:\t\t\t%s",
+                pg_plan_fuzz_node_type_to_str(path->pathtype)
+            );
+        }
+
+        pg_plan_fuzz_join_coster();
     }
-
-    pg_plan_fuzz_join_coster();
+    
     AtEOXact_GUC(false, save_nestlevel);
 }
 
