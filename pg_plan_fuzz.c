@@ -56,8 +56,8 @@
 
 #define JOIN_PATHLIST           0
 #define JOIN_SEARCH             1
-#define NO                      100000000.00
-#define YES                     0.0000000001
+#define NO                      100.00
+#define YES                     0.0001
 
 typedef unsigned int ** BITMATRIX;
 typedef unsigned int *  BITROW;
@@ -324,6 +324,10 @@ static void pg_plan_fuzz_join_set_relids(Relids bms1, Relids bms2)
 
     if (!bms_equal(current_joinrelids, joinrelids))
     {
+        if (logging_mode)
+        {
+            elog(INFO, "---------------------------- RELATION -----------------------------");
+        }
         pg_plan_fuzz_join_add_relids();
         if (force_hashjoin || force_mergejoin || force_nestloop)
             pg_plan_fuzz_clear_join_enables();
@@ -353,6 +357,19 @@ static void pg_plan_fuzz_join_coster()
         if (join_recourse_level_ == join_recourse_level) 
         {
             if (path->pathtype == type)     path->total_cost = YES;
+            else                            path->total_cost = NO;
+        } else {
+            if (current_enable_hashjoin && 
+                path->pathtype == T_HashJoin)
+                                            path->total_cost = YES;
+            else                            path->total_cost = NO;
+            if (current_enable_mergejoin && 
+                path->pathtype == T_MergeJoin)
+                                            path->total_cost = YES;
+            else                            path->total_cost = NO;
+            if (current_enable_nestloop && 
+                path->pathtype == T_NestLoop)
+                                            path->total_cost = YES;
             else                            path->total_cost = NO;
         }
     }
@@ -752,10 +769,14 @@ static void pg_plan_fuzz_set_rel_pathlist (
 
     if (logging_mode) 
     {
-        elog (INFO, "Enable SeqScan:\t\t\t%d", enable_seqscan);
-        elog (INFO, "Enable IndexScan:\t\t%d", enable_indexscan);
-        elog (INFO, "Enable IndexOnlyScan:\t\t%d", enable_indexonlyscan);
-        elog (INFO, "Enable BitmapScan:\t\t%d", enable_bitmapscan);
+        elog (INFO, "Enable SeqScan:\t\t\t%s", 
+        enable_seqscan ? "On" : "Off");
+        elog (INFO, "Enable IndexScan:\t\t%s", 
+        enable_indexscan ? "On" : "Off");
+        elog (INFO, "Enable IndexOnlyScan:\t\t%s", 
+        enable_indexonlyscan ? "On" : "Off");
+        elog (INFO, "Enable BitmapScan:\t\t%s", 
+        enable_bitmapscan ? "On" : "Off");
         elog (INFO, "\n");
     }
     
@@ -876,7 +897,9 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
 
 void _PG_init (void) 
 {
-    elog(INFO, "Initialized pg_plan_fuzz extension");
+    elog (INFO, "-----------------------------------------------------------------------------");
+    elog (INFO, "                         PG_PLAN_FUZZ EXTENSION INIT");
+    elog (INFO, "-----------------------------------------------------------------------------");
 
     pg_plan_fuzz_init_scan_enables();
     pg_plan_fuzz_init();
