@@ -98,39 +98,36 @@ set enable_hashjoin = off;
 set enable_mergejoin = off;
 set pg_plan_fuzz.join_recourse_level = 0;
 explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
                                QUERY PLAN                               
 ------------------------------------------------------------------------
  Nested Loop  (cost=0.00..177887.15 rows=51206 width=60)
@@ -145,39 +142,36 @@ INFO:  Current enable_nestloop: 1
 (9 rows)
 
 select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
    t1    
 ---------
  (1,1)
@@ -200,48 +194,36 @@ INFO:  Current enable_nestloop: 1
 set pg_plan_fuzz.force_hashjoin = on;
 set pg_plan_fuzz.join_recourse_level = 0;
 explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
                                QUERY PLAN                               
 ------------------------------------------------------------------------
  Nested Loop  (cost=0.00..177887.15 rows=51206 width=60)
@@ -256,48 +238,36 @@ INFO:  Current enable_nestloop: 1
 (9 rows)
 
 select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
    t1    
 ---------
  (1,1)
@@ -319,52 +289,36 @@ INFO:  Current enable_nestloop: 1
 
 set pg_plan_fuzz.join_recourse_level = 1;
 explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  join_recourse_level: 	1
-INFO:  join_recourse_level_: 	1
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	1
-INFO:  join_recourse_level_: 	1
-INFO:  Path type: HashJoin
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
                                QUERY PLAN                               
 ------------------------------------------------------------------------
  Nested Loop  (cost=38.58..79087.03 rows=51206 width=60)
@@ -378,52 +332,36 @@ INFO:  Current enable_nestloop: 1
 (8 rows)
 
 select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  join_recourse_level: 	1
-INFO:  join_recourse_level_: 	1
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	1
-INFO:  join_recourse_level_: 	1
-INFO:  Path type: HashJoin
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
    t1    
 ---------
  (1,1)
@@ -445,52 +383,36 @@ INFO:  Current enable_nestloop: 1
 
 set pg_plan_fuzz.join_recourse_level = 2;
 explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  join_recourse_level: 	2
-INFO:  join_recourse_level_: 	2
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	2
-INFO:  join_recourse_level_: 	2
-INFO:  Path type: HashJoin
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
                                QUERY PLAN                               
 ------------------------------------------------------------------------
  Nested Loop  (cost=38.58..79087.03 rows=51206 width=60)
@@ -504,52 +426,36 @@ INFO:  Current enable_nestloop: 1
 (8 rows)
 
 select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  join_recourse_level: 	2
-INFO:  join_recourse_level_: 	2
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	2
-INFO:  join_recourse_level_: 	2
-INFO:  Path type: HashJoin
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
    t1    
 ---------
  (1,1)
@@ -571,52 +477,36 @@ INFO:  Current enable_nestloop: 1
 
 set pg_plan_fuzz.join_recourse_level = 3;
 explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  join_recourse_level: 	3
-INFO:  join_recourse_level_: 	3
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	3
-INFO:  join_recourse_level_: 	3
-INFO:  Path type: HashJoin
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
                                QUERY PLAN                               
 ------------------------------------------------------------------------
  Nested Loop  (cost=38.58..79087.03 rows=51206 width=60)
@@ -630,52 +520,36 @@ INFO:  Current enable_nestloop: 1
 (8 rows)
 
 select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  join_recourse_level: 	3
-INFO:  join_recourse_level_: 	3
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	3
-INFO:  join_recourse_level_: 	3
-INFO:  Path type: HashJoin
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
    t1    
 ---------
  (1,1)
@@ -697,60 +571,36 @@ INFO:  Current enable_nestloop: 1
 
 set pg_plan_fuzz.join_recourse_level = 4;
 explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
                                QUERY PLAN                               
 ------------------------------------------------------------------------
  Hash Join  (cost=38.58..0.00 rows=51206 width=60)
@@ -765,60 +615,36 @@ INFO:  Current enable_nestloop: 1
 (9 rows)
 
 select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
+INFO:  Enable SeqScan:			1
+INFO:  Enable IndexScan:		1
+INFO:  Enable IndexOnlyScan:		1
+INFO:  Enable BitmapScan:		1
 INFO:  
 
-INFO:  Enable SeqScan: 1
-INFO:  Enable IndexScan: 1
-INFO:  Enable IndexOnlyScan: 1
-INFO:  Enable BitmapScan: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  Path type: NestLoop
-INFO:  Path type: NestLoop
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  join_recourse_level: 	4
-INFO:  join_recourse_level_: 	4
-INFO:  Path type: HashJoin
-INFO:  Current enable_hashjoin: 0
-INFO:  Current enable_mergejoin: 0
-INFO:  Current enable_nestloop: 1
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			NestLoop
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
    t1    
 ---------
  (1,1)
