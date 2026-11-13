@@ -358,46 +358,38 @@ static void pg_plan_fuzz_join_coster()
             if (path->pathtype == type) 
             {
                 path->total_cost    = YES;
-                path->startup_cost  = YES;
             }     
             else 
             {
                 path->total_cost    = NO;
-                path->startup_cost  = NO;
             }
         } else {
             if (current_enable_hashjoin && 
                 path->pathtype == T_HashJoin) 
             {
                 path->total_cost    = YES;
-                path->startup_cost  = YES;
             }
             else 
             {
                 path->total_cost    = NO;
-                path->startup_cost  = NO;
             }
             if (current_enable_mergejoin && 
                 path->pathtype == T_MergeJoin) 
             {
                 path->total_cost    = YES;
-                path->startup_cost  = YES;
             }
             else 
             {
                 path->total_cost    = NO;
-                path->startup_cost  = NO;
             }
             if (current_enable_nestloop && 
                 path->pathtype == T_NestLoop) 
             {
                 path->total_cost    = YES;
-                path->startup_cost  = YES;
             } 
             else 
             {
                 path->total_cost    = NO;
-                path->startup_cost  = NO;
             }
         }
     }
