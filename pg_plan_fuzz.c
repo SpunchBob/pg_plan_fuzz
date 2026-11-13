@@ -80,8 +80,6 @@ bool current_enable_indexonlyscan   = true;
 
 static BITMATRIX    join_bitmatrix;
 
-static char**       scan_enables;
-static int          pointer;
 static bool*        is_system;
 static int          join_recourse_level_    = 1;
 static int          scan_recourse_level_    = 1;
@@ -139,7 +137,6 @@ static void         pg_plan_fuzz_join_generator      ();
 static void         pg_plan_fuzz_scan_operator       ();
 static void         pg_plan_fuzz_scan_coster         ();
 
-static void         pg_plan_fuzz_init_scan_enables   ();
 static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
 static void         pg_plan_fuzz_clear               ();
 static void         pg_plan_fuzz_clear_join_enables  ();
@@ -186,7 +183,7 @@ static void         populate_joinrel_with_paths      (
                     RelOptInfo *joinrel,
                     SpecialJoinInfo *sjinfo,
                     List *restrictlist
-                    );
+        );
 
 static void         add_paths_to_joinrel_wrapper    (
                     PlannerInfo *root, 
@@ -354,23 +351,54 @@ static void pg_plan_fuzz_join_coster()
     {
         path = (Path*)lfirst(lc);
 
+        // macarony code
+
         if (join_recourse_level_ == join_recourse_level) 
         {
-            if (path->pathtype == type)     path->total_cost = YES;
-            else                            path->total_cost = NO;
+            if (path->pathtype == type) 
+            {
+                path->total_cost    = YES;
+                path->startup_cost  = YES;
+            }     
+            else 
+            {
+                path->total_cost    = NO;
+                path->startup_cost  = NO;
+            }
         } else {
             if (current_enable_hashjoin && 
-                path->pathtype == T_HashJoin)
-                                            path->total_cost = YES;
-            else                            path->total_cost = NO;
+                path->pathtype == T_HashJoin) 
+            {
+                path->total_cost    = YES;
+                path->startup_cost  = YES;
+            }
+            else 
+            {
+                path->total_cost    = NO;
+                path->startup_cost  = NO;
+            }
             if (current_enable_mergejoin && 
-                path->pathtype == T_MergeJoin)
-                                            path->total_cost = YES;
-            else                            path->total_cost = NO;
+                path->pathtype == T_MergeJoin) 
+            {
+                path->total_cost    = YES;
+                path->startup_cost  = YES;
+            }
+            else 
+            {
+                path->total_cost    = NO;
+                path->startup_cost  = NO;
+            }
             if (current_enable_nestloop && 
-                path->pathtype == T_NestLoop)
-                                            path->total_cost = YES;
-            else                            path->total_cost = NO;
+                path->pathtype == T_NestLoop) 
+            {
+                path->total_cost    = YES;
+                path->startup_cost  = YES;
+            } 
+            else 
+            {
+                path->total_cost    = NO;
+                path->startup_cost  = NO;
+            }
         }
     }
 }
@@ -502,34 +530,6 @@ static void pg_plan_fuzz_join_generator ()
 
     if (list_of_joinrelids){}
 
-}
-
-static void pg_plan_fuzz_init_scan_enables () 
-{
-    int             size;
-    MemoryContext   ccxt;
-
-    ccxt         = CurrentMemoryContext;
-
-    MemoryContextSwitchTo(TopMemoryContext);
-
-    size         = 4;
-
-    scan_enables = (char**)palloc0(sizeof(char*) * size);
-
-    scan_enables[0] = (char*)palloc0(sizeof(char) * 30);
-    scan_enables[1] = (char*)palloc0(sizeof(char) * 30);
-    scan_enables[2] = (char*)palloc0(sizeof(char) * 30);
-    scan_enables[3] = (char*)palloc0(sizeof(char) * 30);
-
-    scan_enables[0] = "enable_seqscan";
-    scan_enables[1] = "enable_indexscan";
-    scan_enables[2] = "enable_indexonlyscan";
-    scan_enables[3] = "enable_bitmapscan";
-
-    pointer         = 0;
-
-    MemoryContextSwitchTo(ccxt);
 }
 
 static const char* pg_plan_fuzz_node_type_to_str(int type)
@@ -871,7 +871,7 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
     if (!*is_system)
     {
         current_join_pathlist = joinrel->pathlist;
-
+        
         if (logging_mode) 
         {
 
@@ -901,7 +901,6 @@ void _PG_init (void)
     elog (INFO, "                         PG_PLAN_FUZZ EXTENSION INIT");
     elog (INFO, "-----------------------------------------------------------------------------");
 
-    pg_plan_fuzz_init_scan_enables();
     pg_plan_fuzz_init();
 
     DefineCustomBoolVariable(
