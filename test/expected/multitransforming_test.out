@@ -1,0 +1,470 @@
+drop table if exists t1;
+drop table if exists t2;
+drop table if exists t3;
+drop table if exists t4;
+create table t1 
+(
+    a INT,
+    b TEXT
+);
+create table t2 
+(
+    c INT,
+    d TEXT
+);
+create table t3 
+(
+    e INT,
+    f TEXT
+);
+create table t4 
+(
+    g INT,
+    h TEXT
+);
+create index t1_a on t1 ( a );
+create index t2_c on t2 ( c );
+create index t3_e on t3 ( e );
+create index t4_g on t4 ( g );
+insert into t1
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t2
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t3
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t4
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+LOAD 'pg_plan_fuzz';
+INFO:  -----------------------------------------------------------------------------
+INFO:                           PG_PLAN_FUZZ EXTENSION INIT
+INFO:  -----------------------------------------------------------------------------
+set pg_plan_fuzz.logging_mode = off;
+set enable_hashjoin = on;
+set enable_mergejoin = off;
+set enable_nestloop = off;
+set enable_indescan = off;
+ERROR:  unrecognized configuration parameter "enable_indescan"
+set enable_indexonlyscan = off;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Hash Join  (cost=486.09..12190.26 rows=325158 width=144)
+   Hash Cond: (t1.a = t3.e)
+   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+         Hash Cond: (t1.a = t2.c)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=346.71..346.71 rows=8064 width=72)
+         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+               Hash Cond: (t3.e = t4.g)
+               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+(13 rows)
+
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.force_mergejoin = on;
+set pg_plan_fuzz.force_indexscan = on;
+set pg_plan_fuzz.join_recourse_level = 1;
+set pg_plan_fuzz.scan_recourse_level = 1;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                         QUERY PLAN                                         
+--------------------------------------------------------------------------------------------
+ Hash Join  (cost=139.38..11843.55 rows=325158 width=144)
+   Hash Cond: (t3.e = t1.a)
+   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+         Hash Cond: (t3.e = t4.g)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+               ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
+         ->  Merge Join  (cost=0.30..0.00 rows=8064 width=72)
+               Merge Cond: (t1.a = t2.c)
+               ->  Index Scan using t1_a on t1  (cost=0.15..0.00 rows=1270 width=36)
+               ->  Materialize  (cost=0.15..70.38 rows=1270 width=36)
+                     ->  Index Scan using t2_c on t2  (cost=0.15..67.20 rows=1270 width=36)
+(13 rows)
+
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.scan_recourse_level = 2;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                      QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+ Hash Join  (cost=139.38..11843.55 rows=325158 width=144)
+   Hash Cond: (t3.e = t1.a)
+   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+         Hash Cond: (t3.e = t4.g)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+               ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
+         ->  Merge Join  (cost=0.30..0.00 rows=8064 width=72)
+               Merge Cond: (t1.a = t2.c)
+               ->  Index Scan using t1_a on t1  (cost=0.15..67.20 rows=1270 width=36)
+               ->  Index Scan using t2_c on t2  (cost=0.15..0.00 rows=1270 width=36)
+(12 rows)
+
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.scan_recourse_level = 3;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                         QUERY PLAN                                         
+--------------------------------------------------------------------------------------------
+ Hash Join  (cost=116.68..11820.85 rows=325158 width=144)
+   Hash Cond: (t3.e = t1.a)
+   ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
+         Hash Cond: (t4.g = t3.e)
+         ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+               ->  Index Scan using t3_e on t3  (cost=0.15..0.00 rows=1270 width=36)
+   ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
+         ->  Merge Join  (cost=0.30..0.00 rows=8064 width=72)
+               Merge Cond: (t1.a = t2.c)
+               ->  Index Scan using t1_a on t1  (cost=0.15..67.20 rows=1270 width=36)
+               ->  Materialize  (cost=0.15..70.38 rows=1270 width=36)
+                     ->  Index Scan using t2_c on t2  (cost=0.15..67.20 rows=1270 width=36)
+(13 rows)
+
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.scan_recourse_level = 4;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                         QUERY PLAN                                         
+--------------------------------------------------------------------------------------------
+ Hash Join  (cost=116.68..11820.85 rows=325158 width=144)
+   Hash Cond: (t3.e = t1.a)
+   ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
+         Hash Cond: (t3.e = t4.g)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+               ->  Index Scan using t4_g on t4  (cost=0.15..0.00 rows=1270 width=36)
+   ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
+         ->  Merge Join  (cost=0.30..0.00 rows=8064 width=72)
+               Merge Cond: (t1.a = t2.c)
+               ->  Index Scan using t1_a on t1  (cost=0.15..67.20 rows=1270 width=36)
+               ->  Materialize  (cost=0.15..70.38 rows=1270 width=36)
+                     ->  Index Scan using t2_c on t2  (cost=0.15..67.20 rows=1270 width=36)
+(13 rows)
+
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.join_recourse_level = 18;
+set pg_plan_fuzz.scan_recourse_level = 1;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                     QUERY PLAN                                      
+-------------------------------------------------------------------------------------
+ Hash Join  (cost=974.00..11524.42 rows=325158 width=144)
+   Hash Cond: (t2.c = t1.a)
+   ->  Merge Join  (cost=958.13..0.00 rows=51206 width=108)
+         Merge Cond: (t3.e = t2.c)
+         ->  Sort  (cost=869.96..890.12 rows=8064 width=72)
+               Sort Key: t3.e
+               ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+                     Hash Cond: (t3.e = t4.g)
+                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+                     ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+                           ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t2.c
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+         ->  Index Scan using t1_a on t1  (cost=0.15..0.00 rows=1270 width=36)
+(16 rows)
+
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.scan_recourse_level = 2;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                     QUERY PLAN                                      
+-------------------------------------------------------------------------------------
+ Hash Join  (cost=908.68..11547.12 rows=325158 width=144)
+   Hash Cond: (t2.c = t1.a)
+   ->  Merge Join  (cost=870.11..0.00 rows=51206 width=108)
+         Merge Cond: (t3.e = t2.c)
+         ->  Sort  (cost=869.96..890.12 rows=8064 width=72)
+               Sort Key: t3.e
+               ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+                     Hash Cond: (t3.e = t4.g)
+                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+                     ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+                           ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Index Scan using t2_c on t2  (cost=0.15..0.00 rows=1270 width=36)
+   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+(14 rows)
+
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.scan_recourse_level = 3;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                           QUERY PLAN                                            
+-------------------------------------------------------------------------------------------------
+ Hash Join  (cost=974.00..11547.12 rows=325158 width=144)
+   Hash Cond: (t2.c = t1.a)
+   ->  Merge Join  (cost=935.43..0.00 rows=51206 width=108)
+         Merge Cond: (t3.e = t2.c)
+         ->  Sort  (cost=847.26..867.42 rows=8064 width=72)
+               Sort Key: t3.e
+               ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
+                     Hash Cond: (t4.g = t3.e)
+                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+                     ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+                           ->  Index Scan using t3_e on t3  (cost=0.15..0.00 rows=1270 width=36)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t2.c
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+(16 rows)
+
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+
+set pg_plan_fuzz.scan_recourse_level = 4;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                           QUERY PLAN                                            
+-------------------------------------------------------------------------------------------------
+ Hash Join  (cost=974.00..11547.12 rows=325158 width=144)
+   Hash Cond: (t2.c = t1.a)
+   ->  Merge Join  (cost=935.43..0.00 rows=51206 width=108)
+         Merge Cond: (t3.e = t2.c)
+         ->  Sort  (cost=847.26..867.42 rows=8064 width=72)
+               Sort Key: t3.e
+               ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
+                     Hash Cond: (t3.e = t4.g)
+                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+                     ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+                           ->  Index Scan using t4_g on t4  (cost=0.15..0.00 rows=1270 width=36)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+               Sort Key: t2.c
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+(16 rows)
+
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+ a  | b  | c  | d  | e  | f  | g  | h  
+----+----+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15 | 15 | 15
+(15 rows)
+

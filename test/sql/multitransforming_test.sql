@@ -141,3 +141,24 @@ set pg_plan_fuzz.scan_recourse_level = 4;
 
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
 select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+
+set pg_plan_fuzz.join_recourse_level = 18;
+set pg_plan_fuzz.scan_recourse_level = 1;
+
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+
+set pg_plan_fuzz.scan_recourse_level = 2;
+
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+
+set pg_plan_fuzz.scan_recourse_level = 3;
+
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+
+set pg_plan_fuzz.scan_recourse_level = 4;
+
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
