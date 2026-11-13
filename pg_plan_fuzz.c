@@ -128,7 +128,6 @@ static const char*  pg_plan_fuzz_node_type_to_str    (int type);
 
 static void         pg_plan_fuzz_join_operator       ();
 static void         pg_plan_fuzz_join_transformator  ();
-static void         pg_plan_fuzz_join_navigator      (int pos);
 static void         pg_plan_fuzz_join_coster         ();
 static void         pg_plan_fuzz_join_set_relids     (Relids bms1, Relids bms2);
 static void         pg_plan_fuzz_join_add_relids     ();
@@ -351,8 +350,6 @@ static void pg_plan_fuzz_join_coster()
     {
         path = (Path*)lfirst(lc);
 
-        // macarony code
-
         if (join_recourse_level_ == join_recourse_level) 
         {
             if (path->pathtype == type) 
@@ -363,53 +360,7 @@ static void pg_plan_fuzz_join_coster()
             {
                 path->total_cost    = NO;
             }
-        } else {
-            if (current_enable_hashjoin && 
-                path->pathtype == T_HashJoin) 
-            {
-                path->total_cost    = YES;
-            }
-            else 
-            {
-                path->total_cost    = NO;
-            }
-            if (current_enable_mergejoin && 
-                path->pathtype == T_MergeJoin) 
-            {
-                path->total_cost    = YES;
-            }
-            else 
-            {
-                path->total_cost    = NO;
-            }
-            if (current_enable_nestloop && 
-                path->pathtype == T_NestLoop) 
-            {
-                path->total_cost    = YES;
-            } 
-            else 
-            {
-                path->total_cost    = NO;
-            }
-        }
-    }
-}
-
-static void pg_plan_fuzz_join_navigator (int pos) 
-{
-    switch (pos) 
-    {
-        case JOIN_PATHLIST: 
-        {
-            if (multirelation) pg_plan_fuzz_join_transformator();
-            return;
-        }
-        case JOIN_SEARCH:
-        {
-            if (!multirelation) pg_plan_fuzz_join_operator();
-            return;
-        }
-        default: { return; }
+        } 
     }
 }
 
@@ -654,9 +605,6 @@ static RelOptInfo *pg_plan_fuzz_join_search (
         levels_needed,
         initial_rels
     );
-
-
-    pg_plan_fuzz_join_navigator(JOIN_SEARCH);
 
     if (prev_join_search)   rel = prev_join_search(
         root,
