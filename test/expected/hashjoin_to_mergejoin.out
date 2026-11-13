@@ -255,9 +255,9 @@ INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
                                QUERY PLAN                               
 ------------------------------------------------------------------------
- Hash Join  (cost=77.15..100.00 rows=51206 width=60)
+ Hash Join  (cost=77.15..2197.67 rows=51206 width=60)
    Hash Cond: (t1.a = t3.e)
-   ->  Hash Join  (cost=38.58..100.00 rows=8064 width=68)
+   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=68)
          Hash Cond: (t1.a = t2.c)
          ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
          ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
@@ -368,7 +368,7 @@ INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
                                QUERY PLAN                                
 -------------------------------------------------------------------------
- Hash Join  (cost=214.92..100.00 rows=51206 width=60)
+ Hash Join  (cost=214.92..1850.96 rows=51206 width=60)
    Hash Cond: (t1.a = t3.e)
    ->  Merge Join  (cost=176.34..0.00 rows=8064 width=68)
          Merge Cond: (t1.a = t2.c)
@@ -482,18 +482,21 @@ INFO:  Path type:			HashJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-                               QUERY PLAN                               
-------------------------------------------------------------------------
- Hash Join  (cost=77.15..100.00 rows=51206 width=60)
-   Hash Cond: (t1.a = t3.e)
-   ->  Hash Join  (cost=38.58..100.00 rows=8064 width=68)
-         Hash Cond: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
-         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+                               QUERY PLAN                                
+-------------------------------------------------------------------------
+ Hash Join  (cost=214.92..1850.96 rows=51206 width=60)
+   Hash Cond: (t1.a = t2.c)
+   ->  Merge Join  (cost=176.34..0.00 rows=8064 width=68)
+         Merge Cond: (t1.a = t3.e)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
+               Sort Key: t1.a
+               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+               Sort Key: t3.e
+               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
    ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
-(9 rows)
+         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+(12 rows)
 
 select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
@@ -597,16 +600,19 @@ INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
                                QUERY PLAN                               
 ------------------------------------------------------------------------
- Hash Join  (cost=77.15..100.00 rows=51206 width=60)
-   Hash Cond: (t1.a = t3.e)
-   ->  Hash Join  (cost=38.58..100.00 rows=8064 width=68)
-         Hash Cond: (t1.a = t2.c)
-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
-         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+ Hash Join  (cost=214.92..1850.96 rows=51206 width=60)
+   Hash Cond: (t2.c = t1.a)
+   ->  Merge Join  (cost=176.34..0.00 rows=8064 width=8)
+         Merge Cond: (t2.c = t3.e)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+               Sort Key: t2.c
                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
-   ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
-(9 rows)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+               Sort Key: t3.e
+               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+   ->  Hash  (cost=22.70..22.70 rows=1270 width=64)
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+(12 rows)
 
 select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
@@ -710,11 +716,11 @@ INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
                                   QUERY PLAN                                  
 ------------------------------------------------------------------------------
- Merge Join  (cost=711.42..0.00 rows=51206 width=60)
+ Merge Join  (cost=958.13..0.00 rows=51206 width=60)
    Merge Cond: (t1.a = t3.e)
-   ->  Sort  (cost=623.24..643.40 rows=8064 width=68)
+   ->  Sort  (cost=869.96..890.12 rows=8064 width=68)
          Sort Key: t1.a
-         ->  Hash Join  (cost=38.58..100.00 rows=8064 width=68)
+         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=68)
                Hash Cond: (t1.a = t2.c)
                ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
                ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
