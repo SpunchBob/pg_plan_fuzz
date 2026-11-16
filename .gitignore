@@ -1,11 +1,9 @@
+.cache/	
+.vscode/	
+
+test/results 
+vim-clang/ 
+
 *.o
 *.so
-*.bc
 
-test/results/
-test/regression.diffs
-test/regression.out
-
-.*/
-
-vim-clang/

@@ -1,4 +1,3 @@
-
 #include "postgres.h"
 
 #include "catalog/catalog.h"
@@ -53,15 +52,48 @@
 #include "catalog/pg_type.h"
 
 #include "plpgsql.h"
+#include "fmgr.h"
 
-#define JOIN_PATHLIST           0
-#define JOIN_SEARCH             1
+#define JOIN                    0x16
+#define SCAN                    0x32
 #define NO                      100.00
 #define YES                     0.0001
 
-typedef unsigned int ** BITMATRIX;
-typedef unsigned int *  BITROW;
-static const int MAX_JOIN_RECOURSE_LEVEL = 1000000;
+#define SET_BITVECTOR_VALUE                                             \
+do                                                                      \
+{                                                                       \
+                                                                        \
+    int             bit_idx     = PG_GETARG_INT32(0);                   \
+    unsigned char   bit         = (unsigned char)PG_GETARG_INT32(1);    \
+                                                                        \
+    VECTOR[bit_idx]             = bit;                                  \
+                                                                        \
+    PG_RETURN_VOID();                                                   \
+} while (0);                                                            \ 
+
+static unsigned char VECTOR[100] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+// I implement some global vars to handle
+// our amount of join / scan relation ( In case of therminology 
+// it is not correct to call it groups for scan, because in scan 
+// we have relation, not groups of relations, like in join, but i do not
+// think that this is very critical in current time ).
+
+static int JOIN_GROUPS_AMOUNT = 0;
+static int SCAN_GROUPS_AMOUND = 0;
+
+static const int    MAX_JOIN_RECOURSE_LEVEL = 1000000;
 
 PG_MODULE_MAGIC;
 void _PG_init (void);
@@ -77,8 +109,6 @@ bool current_enable_indexonlyscan   = true;
 // -----------------------------------------------------------------------------
 //                                      STRUCTS
 // -----------------------------------------------------------------------------
-
-static BITMATRIX    join_bitmatrix;
 
 static bool*        is_system;
 static int          join_recourse_level_    = 1;
@@ -131,7 +161,6 @@ static void         pg_plan_fuzz_join_transformator  ();
 static void         pg_plan_fuzz_join_coster         ();
 static void         pg_plan_fuzz_join_set_relids     (Relids bms1, Relids bms2);
 static void         pg_plan_fuzz_join_add_relids     ();
-static void         pg_plan_fuzz_join_generator      ();
 
 static void         pg_plan_fuzz_scan_operator       ();
 static void         pg_plan_fuzz_scan_coster         ();
@@ -150,6 +179,25 @@ static void         pg_plan_fuzz_force_seqscan       ();
 static void         pg_plan_fuzz_force_indexscan     ();
 static void         pg_plan_fuzz_force_indexonlyscan ();
 static void         pg_plan_fuzz_force_bitmapscan    ();
+
+// This is mutator procedure, that i will attach to the
+// add_paths_to_joinrel wrapper and pg_plan_fuzz_set_rel_pathlist hook 
+// It will call pg_plan_fuzz_scan_operator / pg_plan_fuzz_scan_coster and
+// pg_plan_fuzz_join_operator / pg_plan_fuzz_join_coster to change current 
+// relations type. It will use bitvector data to change some specific 
+// relations. In th past, i had a pg_plan_fuzz_naviagtor method, that choose
+// which procedure we will use in case of different hook. So now i will use
+// same mechanism and pass position in mutator args.
+
+static void         MUTATOR                         (int pos);
+
+// Currently, i will use this function to setup values
+// In our bitvector. I mean, that fuzzer wil use this function,
+// to change data, that will go thtough the postgresql pipeline
+
+PG_FUNCTION_INFO_V1(pg_plan_fuzz_set_bitvector_value);
+Datum pg_plan_fuzz_set_bitvector_value(PG_FUNCTION_ARGS) 
+{SET_BITVECTOR_VALUE} 
 
 // -----------------------------------------------------------------------------
 //                          CORE STUFF - DECLARATIONS
@@ -203,6 +251,46 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
+
+static void         MUTATOR (int pos) 
+{
+    switch (pos) 
+    {
+        case JOIN: 
+        {
+            // check vector and do stuff with join transformation
+            // ok, in join mutation we can have a lot of different
+            // relatioin groups, and some of theme will go through
+            // optimizer and get into plan. actualy, we can specify
+            // relation group, that we can pass to optimizer, but in 
+            // case off experiment i mentioned to get plans with 
+            // different structure, so i think i will not implement 
+            // this system now.
+            //
+            // Let's just smash all vector to the number of relation groups,
+            // and setup join types bounds to setup conditions for 
+            // transformations.
+            //
+            // I think we can do smh like 255 / 3 parts ( HJ, MJ and NL ).
+            // so it is gonna be like 85, 170 and 255
+            
+            const unsigned char hash_join_bounds[2]     = {0, 85};
+            const unsigned char merge_join_bounds[2]    = {85, 170};
+            const unsigned char nested_loop_bounds[2]   = {170, 255};
+            
+            // I make this bounds as const arrays of size 2, Actually
+            // we can create smh of pair type 
+            //
+            // Than lets got through all array. We need to do smh like 
+            // 100 / number_of_relations and cut floating point.
+            
+        }
+        case SCAN:
+        {
+            // check vector and do stuff with scan transformation
+        }
+    }
+}
 
 static void         pg_plan_fuzz_clear_scan_enables  () 
 {
@@ -436,8 +524,6 @@ static void pg_plan_fuzz_init ()
     is_system   = (bool*)palloc0(sizeof(bool));
     *is_system  = false;
 
-    join_bitmatrix = (BITMATRIX)palloc0(sizeof(BITMATRIX));
-
     MemoryContextSwitchTo(ccxt);
 }
 
@@ -464,15 +550,6 @@ static void pg_plan_fuzz_check_system_table (Oid relationObjectOid)
         *is_system = IsSystemRelation(rel);
         relation_close(rel, NoLock);
     }
-}
-
-static void pg_plan_fuzz_join_generator () 
-{
-    unsigned int combinations;
-    unsigned int pool;
-
-    if (list_of_joinrelids){}
-
 }
 
 static const char* pg_plan_fuzz_node_type_to_str(int type)
