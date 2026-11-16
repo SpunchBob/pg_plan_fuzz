@@ -54,8 +54,10 @@
 #include "plpgsql.h"
 #include "fmgr.h"
 
-#define JOIN                    0x16
-#define SCAN                    0x32
+#define JOIN_PRE                0x161
+#define JOIN_POST               0x162    
+#define SCAN_PRE                0x321
+#define SCAN_POST               0x322
 #define NO                      100.00
 #define YES                     0.0001
 
@@ -90,8 +92,23 @@ static unsigned char VECTOR[100] = {
 // we have relation, not groups of relations, like in join, but i do not
 // think that this is very critical in current time ).
 
-static int JOIN_GROUPS_AMOUNT = 0;
-static int SCAN_GROUPS_AMOUND = 0;
+static int JOIN_GROUPS_AMOUNT   = 0;
+static int SCAN_GROUPS_AMOUNT   = 0;
+
+static int join_prop            = 0;
+static int scan_prop            = 0;
+
+static int join_start_pos       = 0;
+static int join_end_pos         = 0;
+
+static int scan_start_pos       = 0;
+static int scan_end_pod         = 0;
+
+static int join_cursor          = 0;
+static int scan_cursor          = 0; 
+
+static bool join_pre_pass       = false;
+static bool join_post_pass      = false;
 
 static const int    MAX_JOIN_RECOURSE_LEVEL = 1000000;
 
@@ -111,7 +128,7 @@ bool current_enable_indexonlyscan   = true;
 // -----------------------------------------------------------------------------
 
 static bool*        is_system;
-static int          join_recourse_level_    = 1;
+static int          join_recourse_level_    = 0;
 static int          scan_recourse_level_    = 1;
 static bool         multirelation           = false;
 static int          relations_counter       = 0;
@@ -251,12 +268,25 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 // -----------------------------------------------------------------------------
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
+//
 
 static void         MUTATOR (int pos) 
 {
+    const unsigned char hash_join_bounds[2]     = {1, 85};
+    const unsigned char merge_join_bounds[2]    = {85, 170};
+    const unsigned char nested_loop_bounds[2]   = {170, 255};
+    
+    if (JOIN_GROUPS_AMOUNT != 0) 
+    {
+        join_prop        = (int)(100 / JOIN_GROUPS_AMOUNT);
+        join_start_pos   = 0;
+        join_end_pos     = join_start_pos + join_prop;
+    } 
+    else return;                 
+    if (join_cursor == 0) join_cursor = join_start_pos;
     switch (pos) 
     {
-        case JOIN: 
+        case JOIN_PRE: 
         {
             // check vector and do stuff with join transformation
             // ok, in join mutation we can have a lot of different
@@ -274,18 +304,145 @@ static void         MUTATOR (int pos)
             // I think we can do smh like 255 / 3 parts ( HJ, MJ and NL ).
             // so it is gonna be like 85, 170 and 255
             
-            const unsigned char hash_join_bounds[2]     = {0, 85};
-            const unsigned char merge_join_bounds[2]    = {85, 170};
-            const unsigned char nested_loop_bounds[2]   = {170, 255};
-            
             // I make this bounds as const arrays of size 2, Actually
             // we can create smh of pair type 
             //
             // Than lets got through all array. We need to do smh like 
             // 100 / number_of_relations and cut floating point.
             
+            // So,  prop - is a one-item size, like an one proportion
+            //      start_pos is position, that i calculate like current join
+            //      level multipliedby one proportion
+            //      end_pos is start_pos plus proportion
+
+            unsigned char vec_bit_val;
+            vec_bit_val = VECTOR[join_cursor];
+            if (hash_join_bounds[0] <= vec_bit_val 
+                    && 
+                hash_join_bounds[1] >= vec_bit_val) 
+            {
+               pg_plan_fuzz_set_config_option(
+                    "enable_hashjoin", "on"
+                       );
+               pg_plan_fuzz_set_config_option(
+                    "enable_mergejoin", "off"
+                       );
+               pg_plan_fuzz_set_config_option(
+                    "enable_nestloop", "off"
+                       );
+            }
+
+            if (merge_join_bounds[0] <= vec_bit_val
+                    &&
+                merge_join_bounds[1] >= vec_bit_val) 
+            {
+               pg_plan_fuzz_set_config_option(
+                    "enable_hashjoin", "off"
+                       );
+               pg_plan_fuzz_set_config_option(
+                    "enable_mergejoin", "on"
+                       );
+               pg_plan_fuzz_set_config_option(
+                    "enable_nestloop", "off"
+                       );
+            }
+
+            if (nested_loop_bounds[0] <= vec_bit_val
+                    &&
+                nested_loop_bounds[1] >= vec_bit_val) 
+            {
+               pg_plan_fuzz_set_config_option(
+                    "enable_hashjoin", "off"
+                       );
+               pg_plan_fuzz_set_config_option(
+                    "enable_mergejoin", "off"
+                       );
+               pg_plan_fuzz_set_config_option(
+                    "enable_nestloop", "on"
+                       );
+            }
+            join_pre_pass = true;
+            break;   
         }
-        case SCAN:
+        case JOIN_POST: 
+        {
+            unsigned char vec_bit_val;
+            vec_bit_val = VECTOR[join_cursor];
+            if (hash_join_bounds[0] <= vec_bit_val 
+                    && 
+                hash_join_bounds[1] >= vec_bit_val) 
+            {
+                ListCell    *lc;
+                Path        *path;
+    
+                foreach (lc, current_join_pathlist) 
+                {
+                    path = (Path*)lfirst(lc);
+                    if (join_recourse_level_ == join_recourse_level) 
+                    {
+                        if (path->pathtype == T_HashJoin) 
+                        {
+                            path->total_cost    = YES;
+                        }     
+                        else 
+                        {
+                            path->total_cost    = NO;
+                        }
+                    }               
+                }
+            }
+
+            if (merge_join_bounds[0] <= vec_bit_val
+                    &&
+                merge_join_bounds[1] >= vec_bit_val) 
+            {
+                ListCell    *lc;
+                Path        *path;
+    
+                foreach (lc, current_join_pathlist) 
+                {
+                    path = (Path*)lfirst(lc);
+                    if (join_recourse_level_ == join_recourse_level) 
+                    {
+                        if (path->pathtype == T_MergeJoin) 
+                        {
+                            path->total_cost    = YES;
+                        }     
+                        else 
+                        {
+                            path->total_cost    = NO;
+                        }
+                    }               
+                }
+            }
+
+            if (nested_loop_bounds[0] <= vec_bit_val
+                    &&
+                nested_loop_bounds[1] >= vec_bit_val) 
+            {
+                ListCell    *lc;
+                Path        *path;
+    
+                foreach (lc, current_join_pathlist) 
+                {
+                    path = (Path*)lfirst(lc);
+                    if (join_recourse_level_ == join_recourse_level) 
+                    {
+                        if (path->pathtype == T_NestLoop) 
+                        {
+                            path->total_cost    = YES;
+                        }     
+                        else 
+                        {
+                            path->total_cost    = NO;
+                        }
+                    }               
+                }
+            }
+            join_post_pass = true;
+            break;   
+        }
+        case SCAN_PRE:
         {
             // check vector and do stuff with scan transformation
         }
@@ -499,6 +656,7 @@ static void pg_plan_fuzz_force_nestloop ()
 
 static void pg_plan_fuzz_clear_join_enables () 
 {
+
     pg_plan_fuzz_set_config_option("enable_hashjoin",
          current_enable_hashjoin ? "on" : "off");
     pg_plan_fuzz_set_config_option("enable_mergejoin", 
@@ -529,13 +687,14 @@ static void pg_plan_fuzz_init ()
 
 static void pg_plan_fuzz_clear() 
 {
-    join_recourse_level_    = 1;
+    join_recourse_level_    = 0;
     scan_recourse_level_    = 1;
     relations_counter       = 0;
     multirelation           = false;
     current_joinrelids      = NULL;
     list_of_joinrelids      = NIL;
     *is_system              = false;
+    join_cursor             = 0;
     pg_plan_fuzz_clear_join_enables();
     pg_plan_fuzz_clear_scan_enables();
 }
@@ -756,6 +915,8 @@ static PlannedStmt *pg_plan_fuzz_planner (
         elog (INFO, "-----------------------------------------------------------------------------");
     }
 
+    JOIN_GROUPS_AMOUNT = join_recourse_level_;
+
     pg_plan_fuzz_clear();
 
     return result;
@@ -865,6 +1026,9 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
 {
 	int				save_nestlevel;
     save_nestlevel = NewGUCNestLevel();
+
+    if (join_recourse_level_ == 0) join_recourse_level_ = 1;
+
     if (!*is_system)
     {
         pg_plan_fuzz_join_set_relids(
@@ -872,7 +1036,7 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
             innerrel->relids
         );
 
-        pg_plan_fuzz_join_transformator();
+        MUTATOR(JOIN_PRE);
     }
     
     add_paths_to_joinrel(
@@ -891,7 +1055,6 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
         
         if (logging_mode) 
         {
-
             ListCell *lc;
             Path     *path;
 
@@ -905,8 +1068,10 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
                 );
             }
         }
-
-        pg_plan_fuzz_join_coster();
+        
+        MUTATOR(JOIN_POST);
+ 
+        if (join_pre_pass && join_post_pass) join_cursor += join_prop;
     }
     
     AtEOXact_GUC(false, save_nestlevel);
