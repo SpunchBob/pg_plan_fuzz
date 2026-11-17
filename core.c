@@ -50,6 +50,35 @@
 #include "catalog/pg_operator.h"
 #include "foreign/fdwapi.h"
 
+/*
+ * set_plain_rel_pathlist
+ *	  Build access paths for a plain relation (no subquery, no inheritance)
+ */
+static void
+set_plain_rel_pathlist(PlannerInfo *root, RelOptInfo *rel, RangeTblEntry *rte)
+{
+	Relids		required_outer;
+
+	/*
+	 * We don't support pushing join clauses into the quals of a seqscan, but
+	 * it could still have required parameterization due to LATERAL refs in
+	 * its tlist.
+	 */
+	required_outer = rel->lateral_relids;
+
+	/* Consider sequential scan */
+	add_path(rel, create_seqscan_path(root, rel, required_outer, 0));
+
+	/* If appropriate, consider parallel sequential scan */
+	if (rel->consider_parallel && required_outer == NULL)
+		create_plain_partial_paths(root, rel);
+
+	/* Consider index scans */
+	create_index_paths(root, rel);
+
+	/* Consider TID scans */
+	create_tidscan_paths(root, rel);
+}
 
 /*
  * standard_join_search

@@ -194,6 +194,12 @@ static void         add_paths_to_joinrel_wrapper    (
                     List *restrictlist
                     );
 
+static void         set_plain_rel_pathlist(
+                    PlannerInfo *root,
+                    RelOptInfo *rel,
+                    RangeTblEntry *rte
+                    );
+
 static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
                     PlannerInfo *root,
                     RelOptInfo *rel1,
