@@ -697,18 +697,12 @@ static void pg_plan_fuzz_set_rel_pathlist (
     RangeTblEntry   *rte
 ) 
 {
-
-    if (*is_system) 
-    { 
-        if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
-            root,
-            rel,
-            rti,
-            rte
-        );
-        return; 
-    }
-    
+    if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
+        root,
+        rel,
+        rti,
+        rte
+    );
     
     if (scan_recourse_level_ == scan_recourse_level)
         pg_plan_fuzz_scan_operator();
@@ -726,14 +720,24 @@ static void pg_plan_fuzz_set_rel_pathlist (
         elog (INFO, "\n");
     }
     
-    if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
-        root,
-        rel,
-        rti,
-        rte
-    );
+
+    set_plain_rel_pathlist(root, rel, rte);
 
     current_scan_pathlist = rel->pathlist;
+
+    if (logging_mode) 
+    {
+        ListCell *lc;
+        Path     *path;
+
+        foreach (lc, current_scan_pathlist) 
+        {
+           path = (Path*)lfirst(lc);
+           elog(INFO, "Scan Path Type:\t\t\t%s", 
+                   pg_plan_fuzz_node_type_to_str(path->pathtype));
+        }
+        elog(INFO, "\n");
+    }
 
     if (scan_recourse_level_ == scan_recourse_level)
         pg_plan_fuzz_scan_coster();
