@@ -110,16 +110,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -163,16 +172,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -224,16 +242,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -277,16 +304,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -337,16 +373,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -392,16 +437,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -452,16 +506,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -507,16 +570,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -567,16 +639,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -622,16 +703,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -682,16 +772,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -738,16 +837,25 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
-INFO:  Enable IndexOnlyScan:		On
-INFO:  Enable BitmapScan:		On
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
+INFO:  
+
+INFO:  Enable SeqScan:			On
+INFO:  Enable IndexScan:		On
+INFO:  Enable IndexOnlyScan:		On
+INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			SeqScan
 INFO:  
 
 INFO:  Path type:			NestLoop
