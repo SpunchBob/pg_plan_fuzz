@@ -240,7 +240,7 @@ static void         pg_plan_fuzz_scan_coster         ()
     if (force_seqscan)          type = T_SeqScan;
     if (force_indexscan)        type = T_IndexScan;
     if (force_indexonlyscan)    type = T_IndexOnlyScan;
-    if (force_bitmapscan)       type = T_BitmapHeapScan;
+    if (force_bitmapscan)       type = T_BitmapIndexScan;
 
     if (!type) return;
 
@@ -719,7 +719,11 @@ static void pg_plan_fuzz_set_rel_pathlist (
         enable_bitmapscan ? "On" : "Off");
         elog (INFO, "\n");
     }
-    
+
+    list_free_deep(rel->pathlist);
+    rel->pathlist = NIL;
+    list_free_deep(rel->partial_pathlist);
+    rel->partial_pathlist = NIL;
 
     set_plain_rel_pathlist(root, rel, rte);
 
