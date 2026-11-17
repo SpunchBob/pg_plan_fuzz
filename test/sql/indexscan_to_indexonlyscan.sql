@@ -106,18 +106,21 @@ create index t2_idx_d on t2 ( d ) ;
 
 LOAD 'pg_plan_fuzz';
 
-set enable_indexonlyscan = off;
+set pg_plan_fuzz.logging_mode = on;
 
-explain select t1.a from t1 join t2 on t1.a = t2.c;
-select t1.a from t1 join t2 on t1.a = t2.c;
+set enable_indexonlyscan = off;
+set enable_seqscan = off;
+
+explain select t1 from t1 join t2 on t1.a = t2.c;
+select t1 from t1 join t2 on t1.a = t2.c;
 
 set pg_plan_fuzz.force_indexonlyscan = on;
 set pg_plan_fuzz.scan_recourse_level = 1;
 
-explain select t1.a from t1 join t2 on t1.a = t2.c;
-select t1.a from t1 join t2 on t1.a = t2.c;
+explain select t1 from t1 join t2 on t1.a = t2.c;
+select t1 from t1 join t2 on t1.a = t2.c;
 
 set pg_plan_fuzz.scan_recourse_level = 2;
 
-explain select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
-select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
+explain select t1 from t1 join t2 on t1.a = t2.c;
+select t1 from t1 join t2 on t1.a = t2.c;

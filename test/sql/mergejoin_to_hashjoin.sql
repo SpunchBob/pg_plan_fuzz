@@ -27,6 +27,11 @@ create table t4
     h TEXT
 );
 
+create index t1_a_idx on t1 ( a ) ;
+create index t2_c_idx on t2 ( c ) ;
+create index t3_e_idx on t3 ( e ) ;
+create index t4_g_idx on t4 ( g ) ;
+
 insert into t1
 values 
 ( 1, '1' ),
@@ -103,33 +108,33 @@ LOAD 'pg_plan_fuzz';
 
 set pg_plan_fuzz.logging_mode = on;
 
+set enable_indexscan = off;
 set enable_hashjoin = off;
 set enable_mergejoin = on;
-set enable_nestedloop = off;
+set enable_nestloop = off;
 
 set pg_plan_fuzz.join_recourse_level = 0;
 
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.force_hashjoin = on;
 set pg_plan_fuzz.join_recourse_level = 1;
 
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.join_recourse_level = 2;
 
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.join_recourse_level = 3;
 
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
-
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.join_recourse_level = 4;
 
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
