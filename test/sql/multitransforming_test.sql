@@ -112,7 +112,7 @@ set enable_hashjoin = on;
 set enable_mergejoin = off;
 set enable_nestloop = off;
 
-set enable_indescan = off;
+set enable_indexscan = off;
 set enable_indexonlyscan = off;
 
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;

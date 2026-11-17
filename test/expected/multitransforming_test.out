@@ -102,8 +102,7 @@ set pg_plan_fuzz.logging_mode = off;
 set enable_hashjoin = on;
 set enable_mergejoin = off;
 set enable_nestloop = off;
-set enable_indescan = off;
-ERROR:  unrecognized configuration parameter "enable_indescan"
+set enable_indexscan = off;
 set enable_indexonlyscan = off;
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
                                   QUERY PLAN                                   
@@ -148,8 +147,8 @@ set pg_plan_fuzz.force_indexscan = on;
 set pg_plan_fuzz.join_recourse_level = 1;
 set pg_plan_fuzz.scan_recourse_level = 1;
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
-                                         QUERY PLAN                                         
---------------------------------------------------------------------------------------------
+                                     QUERY PLAN                                      
+-------------------------------------------------------------------------------------
  Hash Join  (cost=139.38..11843.55 rows=325158 width=144)
    Hash Cond: (t3.e = t1.a)
    ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
@@ -158,12 +157,13 @@ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 o
          ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
                ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
    ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
-         ->  Merge Join  (cost=0.30..0.00 rows=8064 width=72)
+         ->  Merge Join  (cost=88.32..0.00 rows=8064 width=72)
                Merge Cond: (t1.a = t2.c)
                ->  Index Scan using t1_a on t1  (cost=0.15..0.00 rows=1270 width=36)
-               ->  Materialize  (cost=0.15..70.38 rows=1270 width=36)
-                     ->  Index Scan using t2_c on t2  (cost=0.15..67.20 rows=1270 width=36)
-(13 rows)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t2.c
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+(14 rows)
 
 select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
  a  | b  | c  | d  | e  | f  | g  | h  
@@ -187,8 +187,8 @@ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e =
 
 set pg_plan_fuzz.scan_recourse_level = 2;
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
-                                      QUERY PLAN                                      
---------------------------------------------------------------------------------------
+                                     QUERY PLAN                                      
+-------------------------------------------------------------------------------------
  Hash Join  (cost=139.38..11843.55 rows=325158 width=144)
    Hash Cond: (t3.e = t1.a)
    ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
@@ -197,11 +197,13 @@ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 o
          ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
                ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
    ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
-         ->  Merge Join  (cost=0.30..0.00 rows=8064 width=72)
+         ->  Merge Join  (cost=88.32..0.00 rows=8064 width=72)
                Merge Cond: (t1.a = t2.c)
-               ->  Index Scan using t1_a on t1  (cost=0.15..67.20 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t1.a
+                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
                ->  Index Scan using t2_c on t2  (cost=0.15..0.00 rows=1270 width=36)
-(12 rows)
+(14 rows)
 
 select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
  a  | b  | c  | d  | e  | f  | g  | h  
@@ -225,8 +227,8 @@ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e =
 
 set pg_plan_fuzz.scan_recourse_level = 3;
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
-                                         QUERY PLAN                                         
---------------------------------------------------------------------------------------------
+                                     QUERY PLAN                                      
+-------------------------------------------------------------------------------------
  Hash Join  (cost=116.68..11820.85 rows=325158 width=144)
    Hash Cond: (t3.e = t1.a)
    ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
@@ -235,12 +237,15 @@ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 o
          ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
                ->  Index Scan using t3_e on t3  (cost=0.15..0.00 rows=1270 width=36)
    ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
-         ->  Merge Join  (cost=0.30..0.00 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..0.00 rows=8064 width=72)
                Merge Cond: (t1.a = t2.c)
-               ->  Index Scan using t1_a on t1  (cost=0.15..67.20 rows=1270 width=36)
-               ->  Materialize  (cost=0.15..70.38 rows=1270 width=36)
-                     ->  Index Scan using t2_c on t2  (cost=0.15..67.20 rows=1270 width=36)
-(13 rows)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t1.a
+                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t2.c
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+(16 rows)
 
 select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
  a  | b  | c  | d  | e  | f  | g  | h  
@@ -264,8 +269,8 @@ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e =
 
 set pg_plan_fuzz.scan_recourse_level = 4;
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
-                                         QUERY PLAN                                         
---------------------------------------------------------------------------------------------
+                                     QUERY PLAN                                      
+-------------------------------------------------------------------------------------
  Hash Join  (cost=116.68..11820.85 rows=325158 width=144)
    Hash Cond: (t3.e = t1.a)
    ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
@@ -274,12 +279,15 @@ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 o
          ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
                ->  Index Scan using t4_g on t4  (cost=0.15..0.00 rows=1270 width=36)
    ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
-         ->  Merge Join  (cost=0.30..0.00 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..0.00 rows=8064 width=72)
                Merge Cond: (t1.a = t2.c)
-               ->  Index Scan using t1_a on t1  (cost=0.15..67.20 rows=1270 width=36)
-               ->  Materialize  (cost=0.15..70.38 rows=1270 width=36)
-                     ->  Index Scan using t2_c on t2  (cost=0.15..67.20 rows=1270 width=36)
-(13 rows)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t1.a
+                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+                     Sort Key: t2.c
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+(16 rows)
 
 select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
  a  | b  | c  | d  | e  | f  | g  | h  
