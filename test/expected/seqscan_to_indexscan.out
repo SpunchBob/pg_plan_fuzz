@@ -200,7 +200,6 @@ INFO:  Enable BitmapScan:		Off
 INFO:  
 
 INFO:  Scan Path Type:			IndexScan
-INFO:  Scan Path Type:			SeqScan
 INFO:  Scan Path Type:			IndexScan
 INFO:  
 
@@ -239,7 +238,6 @@ INFO:  Enable BitmapScan:		Off
 INFO:  
 
 INFO:  Scan Path Type:			IndexScan
-INFO:  Scan Path Type:			SeqScan
 INFO:  Scan Path Type:			IndexScan
 INFO:  
 
@@ -301,7 +299,6 @@ INFO:  Enable BitmapScan:		Off
 INFO:  
 
 INFO:  Scan Path Type:			IndexScan
-INFO:  Scan Path Type:			SeqScan
 INFO:  Scan Path Type:			IndexScan
 INFO:  
 
@@ -340,7 +337,6 @@ INFO:  Enable BitmapScan:		Off
 INFO:  
 
 INFO:  Scan Path Type:			IndexScan
-INFO:  Scan Path Type:			SeqScan
 INFO:  Scan Path Type:			IndexScan
 INFO:  
 
