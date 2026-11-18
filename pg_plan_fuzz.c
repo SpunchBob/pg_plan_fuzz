@@ -122,6 +122,9 @@ bool current_enable_seqscan         = true;
 bool current_enable_indexscan       = true;
 bool current_enable_indexonlyscan   = true;
 
+bool dump_choices                   = false;
+int  scan_point_pos                 = 1;
+int  join_point_pos                 = 1;
 
 // -----------------------------------------------------------------------------
 //                                      STRUCTS
@@ -196,6 +199,8 @@ static void         pg_plan_fuzz_force_seqscan       ();
 static void         pg_plan_fuzz_force_indexscan     ();
 static void         pg_plan_fuzz_force_indexonlyscan ();
 static void         pg_plan_fuzz_force_bitmapscan    ();
+
+static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel);
 
 // This is mutator procedure, that i will attach to the
 // add_paths_to_joinrel wrapper and pg_plan_fuzz_set_rel_pathlist hook 
@@ -275,6 +280,67 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
 //
+
+static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel) 
+{
+    if (dump_choices) 
+    {
+        int         parametred;
+        int         not_parametred;
+        int         id;
+        ListCell    *lc;
+        Path        *path;
+        
+        parametred = 0; 
+        not_parametred = 0;
+        id = 0;
+
+        foreach (lc, rel->pathlist) 
+        {
+            path = (Path*)lfirst(lc);
+            if (path->param_info == NULL) not_parametred += 1;
+            else                          parametred     += 1;
+        }
+
+        elog(INFO, "|===========\tSET_REL_PATHLIST_HOOK POINT\t===========|");
+        
+        elog(INFO,
+            "\tcurrent point position:\t\t%d", 
+            scan_point_pos);
+        
+        elog(INFO,
+            "\tcurrent tables:\t\t\t%d", rel->relid);
+       
+        elog(INFO,
+             "\tcount of parametred:\t\t%d",
+             parametred
+             ); 
+        
+        elog(INFO,
+             "\tcount of not paramtered:\t%d",
+             not_parametred);
+            
+        elog(INFO, "|===========\tPATH DATA FROM PATHLIST\t\t===========|");
+
+        foreach (lc, rel->pathlist) 
+        {
+            path = (Path*)lfirst(lc);
+            
+            elog(INFO, "\t\tid:\t\t\t%d", id);
+            elog(INFO, "\t\tpathtype:\t\t%s",
+                    pg_plan_fuzz_node_type_to_str(path->pathtype));
+            elog(INFO, "\t\tstartup_cost:\t\t%f", path->startup_cost);
+            elog(INFO, "\t\ttotal_cost:\t\t%f", path->total_cost);
+            elog(INFO, "\t\tis_sorted:\t\t%s",
+                    path->pathkeys != NIL ? "Yes" : "No");
+
+            elog(INFO, "\n");
+            id++;
+        }
+
+        elog(INFO, "|===========================================================|\n\n");
+    }
+}
 
 static void         MUTATOR (int pos) 
 {
@@ -701,6 +767,7 @@ static void pg_plan_fuzz_clear()
     list_of_joinrelids      = NIL;
     *is_system              = false;
     join_cursor             = 0;
+    scan_point_pos          = 1;
     pg_plan_fuzz_clear_join_enables();
     pg_plan_fuzz_clear_scan_enables();
 }
@@ -958,6 +1025,10 @@ static void pg_plan_fuzz_set_rel_pathlist (
         elog (INFO, "\n");
     }
 
+    // For now just place it there
+    
+    pg_plan_fuzz_scan_dump_choices(rel);
+
     list_free_deep(rel->pathlist);
     rel->pathlist = NIL;
     list_free_deep(rel->partial_pathlist);
@@ -966,6 +1037,7 @@ static void pg_plan_fuzz_set_rel_pathlist (
     set_plain_rel_pathlist(root, rel, rte);
 
     current_scan_pathlist = rel->pathlist;
+    scan_point_pos++;
 
     if (logging_mode) 
     {
@@ -1099,6 +1171,19 @@ void _PG_init (void)
 
     pg_plan_fuzz_init();
 
+    DefineCustomBoolVariable(
+        "pg_plan_fuzz.dump_choices", 
+        "Turn on | off dumping",
+        NULL, 
+        &dump_choices,
+        false,
+        PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
+    
     DefineCustomBoolVariable(
         "pg_plan_fuzz.logging_mode", 
         "Turn on | off logs",
