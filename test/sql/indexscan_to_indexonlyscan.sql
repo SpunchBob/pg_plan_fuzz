@@ -109,18 +109,18 @@ LOAD 'pg_plan_fuzz';
 set pg_plan_fuzz.logging_mode = on;
 
 set enable_indexonlyscan = off;
-set enable_seqscan = off;
+set enable_indexscan = on;
 
-explain select t1 from t1 join t2 on t1.a = t2.c;
-select t1 from t1 join t2 on t1.a = t2.c;
+explain select t2.c from t2 join t1 on t2.c = t1.a;
+select t2.c from t2 join t1 on t2.c = t1.a;
 
 set pg_plan_fuzz.force_indexonlyscan = on;
 set pg_plan_fuzz.scan_recourse_level = 1;
 
-explain select t1 from t1 join t2 on t1.a = t2.c;
-select t1 from t1 join t2 on t1.a = t2.c;
+explain select t2.c from t2 join t1 on t2.c = t1.a;
+select t2.c from t2 join t1 on t2.c = t1.a;
 
 set pg_plan_fuzz.scan_recourse_level = 2;
 
-explain select t1 from t1 join t2 on t1.a = t2.c;
-select t1 from t1 join t2 on t1.a = t2.c;
+explain select t2.c from t2 join t1 on t2.c = t1.a;
+select t2.c from t2 join t1 on t2.c = t1.a;
