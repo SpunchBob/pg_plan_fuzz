@@ -259,6 +259,12 @@ static void         add_paths_to_joinrel_wrapper    (
                     List *restrictlist
                     );
 
+static void         set_plain_rel_pathlist(
+                    PlannerInfo *root,
+                    RelOptInfo *rel,
+                    RangeTblEntry *rte
+                    );
+
 static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
                     PlannerInfo *root,
                     RelOptInfo *rel1,
@@ -479,7 +485,7 @@ static void         pg_plan_fuzz_scan_coster         ()
     if (force_seqscan)          type = T_SeqScan;
     if (force_indexscan)        type = T_IndexScan;
     if (force_indexonlyscan)    type = T_IndexOnlyScan;
-    if (force_bitmapscan)       type = T_BitmapHeapScan;
+    if (force_bitmapscan)       type = T_BitmapIndexScan;
 
     if (!type) return;
 
@@ -929,18 +935,12 @@ static void pg_plan_fuzz_set_rel_pathlist (
     RangeTblEntry   *rte
 ) 
 {
-
-    if (*is_system) 
-    { 
-        if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
-            root,
-            rel,
-            rti,
-            rte
-        );
-        return; 
-    }
-    
+    if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
+        root,
+        rel,
+        rti,
+        rte
+    );
     
     if (scan_recourse_level_ == scan_recourse_level)
         pg_plan_fuzz_scan_operator();
@@ -957,15 +957,29 @@ static void pg_plan_fuzz_set_rel_pathlist (
         enable_bitmapscan ? "On" : "Off");
         elog (INFO, "\n");
     }
-    
-    if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
-        root,
-        rel,
-        rti,
-        rte
-    );
+
+    list_free_deep(rel->pathlist);
+    rel->pathlist = NIL;
+    list_free_deep(rel->partial_pathlist);
+    rel->partial_pathlist = NIL;
+
+    set_plain_rel_pathlist(root, rel, rte);
 
     current_scan_pathlist = rel->pathlist;
+
+    if (logging_mode) 
+    {
+        ListCell *lc;
+        Path     *path;
+
+        foreach (lc, current_scan_pathlist) 
+        {
+           path = (Path*)lfirst(lc);
+           elog(INFO, "Scan Path Type:\t\t\t%s", 
+                   pg_plan_fuzz_node_type_to_str(path->pathtype));
+        }
+        elog(INFO, "\n");
+    }
 
     if (scan_recourse_level_ == scan_recourse_level)
         pg_plan_fuzz_scan_coster();

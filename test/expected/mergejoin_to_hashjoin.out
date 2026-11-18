@@ -22,6 +22,10 @@ create table t4
     g INT,
     h TEXT
 );
+create index t1_a_idx on t1 ( a ) ;
+create index t2_c_idx on t2 ( c ) ;
+create index t3_e_idx on t3 ( e ) ;
+create index t4_g_idx on t4 ( g ) ;
 insert into t1
 values 
 ( 1, '1' ),
@@ -95,31 +99,49 @@ INFO:  -------------------------------------------------------------------------
 INFO:                           PG_PLAN_FUZZ EXTENSION INIT
 INFO:  -----------------------------------------------------------------------------
 set pg_plan_fuzz.logging_mode = on;
+set enable_indexscan = off;
 set enable_hashjoin = off;
 set enable_mergejoin = on;
-set enable_nestedloop = off;
-ERROR:  unrecognized configuration parameter "enable_nestedloop"
+set enable_nestloop = off;
 set pg_plan_fuzz.join_recourse_level = 0;
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -142,42 +164,60 @@ INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
                                   QUERY PLAN                                   
 -------------------------------------------------------------------------------
- Merge Join  (cost=264.52..1166.28 rows=51206 width=60)
+ Merge Join  (cost=264.52..1166.28 rows=51206 width=108)
    Merge Cond: (t3.e = t1.a)
-   ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
          Sort Key: t3.e
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
-   ->  Materialize  (cost=176.34..323.83 rows=8064 width=68)
-         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=68)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
+         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
                Merge Cond: (t1.a = t2.c)
-               ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
                      Sort Key: t1.a
-                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
-               ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
                      Sort Key: t2.c
-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
 (14 rows)
 
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -198,51 +238,71 @@ INFO:  Path type:			MergeJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-   t1    
----------
- (1,1)
- (2,2)
- (3,3)
- (4,4)
- (5,5)
- (6,6)
- (7,7)
- (8,8)
- (9,9)
- (10,10)
- (11,11)
- (12,12)
- (13,13)
- (14,14)
- (15,15)
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
 (15 rows)
 
 set pg_plan_fuzz.force_hashjoin = on;
 set pg_plan_fuzz.join_recourse_level = 1;
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
@@ -259,48 +319,65 @@ INFO:  Path type:			MergeJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Merge Join  (cost=264.52..1166.28 rows=51206 width=60)
-   Merge Cond: (t2.c = t1.a)
-   ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
-         Sort Key: t2.c
-         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
-   ->  Materialize  (cost=176.34..323.83 rows=8064 width=68)
-         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=68)
-               Merge Cond: (t1.a = t3.e)
-               ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
-                     Sort Key: t1.a
-                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
-               ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
-                     Sort Key: t3.e
-                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
-(14 rows)
+                                              QUERY PLAN                                               
+-------------------------------------------------------------------------------------------------------
+ Merge Join  (cost=20000000088.53..976.42 rows=51206 width=108)
+   Merge Cond: (t1.a = t3.e)
+   ->  Nested Loop  (cost=20000000000.36..100.00 rows=8064 width=72)
+         ->  Index Scan using t1_a_idx on t1  (cost=10000000000.15..10000000067.20 rows=1270 width=36)
+         ->  Bitmap Heap Scan on t2  (cost=0.21..4.28 rows=6 width=36)
+               Recheck Cond: (t1.a = c)
+               ->  Bitmap Index Scan on t2_c_idx  (cost=0.00..0.20 rows=6 width=0)
+                     Index Cond: (c = t1.a)
+   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+         Sort Key: t3.e
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+(11 rows)
 
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
@@ -317,53 +394,73 @@ INFO:  Path type:			MergeJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-   t1    
----------
- (1,1)
- (2,2)
- (3,3)
- (4,4)
- (5,5)
- (6,6)
- (7,7)
- (8,8)
- (9,9)
- (10,10)
- (11,11)
- (12,12)
- (13,13)
- (14,14)
- (15,15)
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
 (15 rows)
 
 set pg_plan_fuzz.join_recourse_level = 2;
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
@@ -377,51 +474,68 @@ INFO:  Path type:			MergeJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Merge Join  (cost=264.52..1166.28 rows=51206 width=60)
-   Merge Cond: (t3.e = t1.a)
-   ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
-         Sort Key: t3.e
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
-   ->  Materialize  (cost=176.34..323.83 rows=8064 width=68)
-         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=68)
-               Merge Cond: (t1.a = t2.c)
-               ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
-                     Sort Key: t1.a
-                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
-               ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
-                     Sort Key: t2.c
-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
-(14 rows)
+                                              QUERY PLAN                                               
+-------------------------------------------------------------------------------------------------------
+ Merge Join  (cost=20000000088.53..976.42 rows=51206 width=108)
+   Merge Cond: (t1.a = t2.c)
+   ->  Nested Loop  (cost=20000000000.36..100.00 rows=8064 width=72)
+         ->  Index Scan using t1_a_idx on t1  (cost=10000000000.15..10000000067.20 rows=1270 width=36)
+         ->  Bitmap Heap Scan on t3  (cost=0.21..4.28 rows=6 width=36)
+               Recheck Cond: (t1.a = e)
+               ->  Bitmap Index Scan on t3_e_idx  (cost=0.00..0.20 rows=6 width=0)
+                     Index Cond: (e = t1.a)
+   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+         Sort Key: t2.c
+         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+(11 rows)
 
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
@@ -435,46 +549,64 @@ INFO:  Path type:			MergeJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-   t1    
----------
- (1,1)
- (2,2)
- (3,3)
- (4,4)
- (5,5)
- (6,6)
- (7,7)
- (8,8)
- (9,9)
- (10,10)
- (11,11)
- (12,12)
- (13,13)
- (14,14)
- (15,15)
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
 (15 rows)
 
 set pg_plan_fuzz.join_recourse_level = 3;
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -484,7 +616,9 @@ INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
@@ -495,44 +629,59 @@ INFO:  Path type:			MergeJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-                                  QUERY PLAN                                   
--------------------------------------------------------------------------------
- Merge Join  (cost=264.52..1166.28 rows=51206 width=60)
-   Merge Cond: (t3.e = t1.a)
-   ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
-         Sort Key: t3.e
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
-   ->  Materialize  (cost=176.34..323.83 rows=8064 width=68)
-         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=68)
-               Merge Cond: (t1.a = t2.c)
-               ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
-                     Sort Key: t1.a
-                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
-               ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
-                     Sort Key: t2.c
-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
-(14 rows)
+                                              QUERY PLAN                                               
+-------------------------------------------------------------------------------------------------------
+ Merge Join  (cost=20000000088.53..976.42 rows=51206 width=108)
+   Merge Cond: (t2.c = t1.a)
+   ->  Nested Loop  (cost=20000000000.36..100.00 rows=8064 width=72)
+         ->  Index Scan using t2_c_idx on t2  (cost=10000000000.15..10000000067.20 rows=1270 width=36)
+         ->  Bitmap Heap Scan on t3  (cost=0.21..4.28 rows=6 width=36)
+               Recheck Cond: (t2.c = e)
+               ->  Bitmap Index Scan on t3_e_idx  (cost=0.00..0.20 rows=6 width=0)
+                     Index Cond: (e = t2.c)
+   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+         Sort Key: t1.a
+         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+(11 rows)
 
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -542,7 +691,9 @@ INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  Path type:			HashJoin
+INFO:  Path type:			NestLoop
 INFO:  ---------------------------- RELATION -----------------------------
 INFO:  Path type:			MergeJoin
 INFO:  Path type:			MergeJoin
@@ -553,46 +704,64 @@ INFO:  Path type:			MergeJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-   t1    
----------
- (1,1)
- (2,2)
- (3,3)
- (4,4)
- (5,5)
- (6,6)
- (7,7)
- (8,8)
- (9,9)
- (10,10)
- (11,11)
- (12,12)
- (13,13)
- (14,14)
- (15,15)
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
 (15 rows)
 
 set pg_plan_fuzz.join_recourse_level = 4;
-explain select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -615,40 +784,58 @@ INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
                                QUERY PLAN                                
 -------------------------------------------------------------------------
- Hash Join  (cost=214.92..0.00 rows=51206 width=60)
+ Hash Join  (cost=214.92..0.00 rows=51206 width=108)
    Hash Cond: (t1.a = t3.e)
-   ->  Merge Join  (cost=176.34..303.67 rows=8064 width=68)
+   ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
          Merge Cond: (t1.a = t2.c)
-         ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
                Sort Key: t1.a
-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
                Sort Key: t2.c
-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
-   ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
 (12 rows)
 
-select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION START
 INFO:  -----------------------------------------------------------------------------
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
-INFO:  Enable IndexScan:		On
+INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			BitmapHeapScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -669,22 +856,22 @@ INFO:  Path type:			HashJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-   t1    
----------
- (1,1)
- (2,2)
- (3,3)
- (4,4)
- (5,5)
- (6,6)
- (7,7)
- (8,8)
- (9,9)
- (10,10)
- (11,11)
- (12,12)
- (13,13)
- (14,14)
- (15,15)
+ a  | b  | c  | d  | e  | f  
+----+----+----+----+----+----
+  1 | 1  |  1 | 1  |  1 | 1
+  2 | 2  |  2 | 2  |  2 | 2
+  3 | 3  |  3 | 3  |  3 | 3
+  4 | 4  |  4 | 4  |  4 | 4
+  5 | 5  |  5 | 5  |  5 | 5
+  6 | 6  |  6 | 6  |  6 | 6
+  7 | 7  |  7 | 7  |  7 | 7
+  8 | 8  |  8 | 8  |  8 | 8
+  9 | 9  |  9 | 9  |  9 | 9
+ 10 | 10 | 10 | 10 | 10 | 10
+ 11 | 11 | 11 | 11 | 11 | 11
+ 12 | 12 | 12 | 12 | 12 | 12
+ 13 | 13 | 13 | 13 | 13 | 13
+ 14 | 14 | 14 | 14 | 14 | 14
+ 15 | 15 | 15 | 15 | 15 | 15
 (15 rows)
 

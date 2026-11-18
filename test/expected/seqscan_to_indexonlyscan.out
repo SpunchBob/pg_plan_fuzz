@@ -107,10 +107,20 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexOnlyScan
 INFO:  
 
 INFO:  Path type:			HashJoin
@@ -137,10 +147,20 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexOnlyScan
 INFO:  
 
 INFO:  Path type:			HashJoin
@@ -179,10 +199,19 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		Off
 INFO:  
 
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexOnlyScan
 INFO:  
 
 INFO:  Path type:			HashJoin
@@ -190,11 +219,11 @@ INFO:  Path type:			NestLoop
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-                                 QUERY PLAN                                 
-----------------------------------------------------------------------------
- Nested Loop  (cost=0.14..1.30 rows=15 width=8)
+                                      QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+ Nested Loop  (cost=10000000000.14..1.30 rows=15 width=8)
    ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=4)
-   ->  Index Only Scan using t1_idx on t1  (cost=0.14..0.00 rows=1 width=4)
+   ->  Index Only Scan using t1_idx on t1  (cost=10000000000.14..0.00 rows=1 width=4)
          Index Cond: (a = t2.c)
 (4 rows)
 
@@ -208,10 +237,19 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		Off
 INFO:  
 
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexOnlyScan
 INFO:  
 
 INFO:  Path type:			HashJoin
@@ -249,10 +287,19 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  
+
 INFO:  Enable SeqScan:			Off
 INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		Off
+INFO:  
+
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			IndexOnlyScan
 INFO:  
 
 INFO:  Path type:			NestLoop
@@ -260,11 +307,11 @@ INFO:  Path type:			NestLoop
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-                                 QUERY PLAN                                 
-----------------------------------------------------------------------------
- Nested Loop  (cost=0.14..1.30 rows=15 width=8)
+                                      QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+ Nested Loop  (cost=10000000000.14..1.30 rows=15 width=8)
    ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=4)
-   ->  Index Only Scan using t2_idx on t2  (cost=0.14..0.00 rows=1 width=4)
+   ->  Index Only Scan using t2_idx on t2  (cost=10000000000.14..0.00 rows=1 width=4)
          Index Cond: (c = t1.a)
 (4 rows)
 
@@ -278,10 +325,19 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  
+
 INFO:  Enable SeqScan:			Off
 INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		Off
+INFO:  
+
+INFO:  Scan Path Type:			IndexOnlyScan
+INFO:  Scan Path Type:			IndexOnlyScan
 INFO:  
 
 INFO:  Path type:			NestLoop

@@ -108,10 +108,18 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			Off
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -137,10 +145,18 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			Off
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
+INFO:  
+
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
 INFO:  
 
 INFO:  Path type:			MergeJoin
@@ -179,24 +195,34 @@ INFO:  Enable IndexOnlyScan:		Off
 INFO:  Enable BitmapScan:		Off
 INFO:  
 
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			Off
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Path type:			MergeJoin
-INFO:  Path type:			MergeJoin
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-                                QUERY PLAN                                 
----------------------------------------------------------------------------
- Merge Join  (cost=0.27..112.58 rows=15 width=72)
-   Merge Cond: (t1.a = t2.c)
-   ->  Index Scan using t1_idx on t1  (cost=0.14..100.00 rows=15 width=36)
+                                QUERY PLAN                                
+--------------------------------------------------------------------------
+ Hash Join  (cost=0.32..12.75 rows=15 width=72)
+   Hash Cond: (t2.c = t1.a)
    ->  Index Scan using t2_idx on t2  (cost=0.14..12.36 rows=15 width=36)
-(4 rows)
+   ->  Hash  (cost=0.00..0.00 rows=15 width=36)
+         ->  Seq Scan on t1  (cost=0.00..0.00 rows=15 width=36)
+(5 rows)
 
 select * from t1 join t2 on t1.a = t2.c;
 INFO:  -----------------------------------------------------------------------------
@@ -208,14 +234,23 @@ INFO:  Enable IndexOnlyScan:		Off
 INFO:  Enable BitmapScan:		Off
 INFO:  
 
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			Off
 INFO:  Enable IndexScan:		On
 INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
-INFO:  Path type:			MergeJoin
-INFO:  Path type:			MergeJoin
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
@@ -249,24 +284,34 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		Off
 INFO:  Enable BitmapScan:		Off
 INFO:  
 
-INFO:  Path type:			MergeJoin
-INFO:  Path type:			MergeJoin
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
-                                QUERY PLAN                                 
----------------------------------------------------------------------------
- Merge Join  (cost=0.27..112.58 rows=15 width=72)
-   Merge Cond: (t1.a = t2.c)
+                                QUERY PLAN                                
+--------------------------------------------------------------------------
+ Hash Join  (cost=0.32..12.75 rows=15 width=72)
+   Hash Cond: (t1.a = t2.c)
    ->  Index Scan using t1_idx on t1  (cost=0.14..12.36 rows=15 width=36)
-   ->  Index Scan using t2_idx on t2  (cost=0.14..100.00 rows=15 width=36)
-(4 rows)
+   ->  Hash  (cost=0.00..0.00 rows=15 width=36)
+         ->  Seq Scan on t2  (cost=0.00..0.00 rows=15 width=36)
+(5 rows)
 
 select * from t1 join t2 on t1.a = t2.c;
 INFO:  -----------------------------------------------------------------------------
@@ -278,14 +323,23 @@ INFO:  Enable IndexOnlyScan:		On
 INFO:  Enable BitmapScan:		On
 INFO:  
 
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
 INFO:  Enable SeqScan:			On
 INFO:  Enable IndexScan:		Off
 INFO:  Enable IndexOnlyScan:		Off
 INFO:  Enable BitmapScan:		Off
 INFO:  
 
-INFO:  Path type:			MergeJoin
-INFO:  Path type:			MergeJoin
+INFO:  Scan Path Type:			SeqScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  Scan Path Type:			IndexScan
+INFO:  
+
+INFO:  Path type:			HashJoin
+INFO:  Path type:			HashJoin
 INFO:  -----------------------------------------------------------------------------
 INFO:                           LOGGING INFORMATION END
 INFO:  -----------------------------------------------------------------------------
