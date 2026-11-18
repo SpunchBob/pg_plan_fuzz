@@ -319,7 +319,9 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
         
         elog(INFO,
             "\tGROUP:\t\t\t");
-       
+      
+        // See PG17 bitmapset.c : /src/backend/nodes/bitmapset.c
+
         while ((x = bms_next_member(rel->relids, x)) >= 0) 
         {
             rte = root->simple_rte_array[x];
