@@ -1,0 +1,18 @@
+# using postmaster on Unix socket, default port
+ok 1         - pg_plan_fuzz                               14 ms
+not ok 2     - hashjoin_to_nestloop                       35 ms
+not ok 3     - hashjoin_to_mergejoin                      39 ms
+not ok 4     - mergejoin_to_hashjoin                      45 ms
+not ok 5     - mergejoin_to_nestloop                      40 ms
+not ok 6     - nestloop_to_mergejoin                      39 ms
+not ok 7     - nestloop_to_hashjoin                       39 ms
+not ok 8     - indexscan_to_indexonlyscan                 38 ms
+not ok 9     - seqscan_to_indexscan                       38 ms
+not ok 10    - seqscan_to_indexonlyscan                   53 ms
+ok 11        - indexscan_to_seqscan                       40 ms
+not ok 12    - multitransforming_test                     56 ms
+ok 13        - dump_test                                  35 ms
+1..13
+# 10 of 13 tests failed.
+# The differences that caused some tests to fail can be viewed in the file "/home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/regression.diffs".
+# A copy of the test summary that you see above is saved in the file "/home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/regression.out".

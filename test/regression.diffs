@@ -1,0 +1,2033 @@
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/hashjoin_to_nestloop.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/hashjoin_to_nestloop.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/hashjoin_to_nestloop.out	2026-11-18 16:57:06.668867857 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/hashjoin_to_nestloop.out	2026-11-19 15:13:51.059677632 +0300
+@@ -397,8 +397,8 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -417,12 +417,12 @@
+ INFO:  -----------------------------------------------------------------------------
+                                QUERY PLAN                               
+ ------------------------------------------------------------------------
+- Hash Join  (cost=38.58..1850.96 rows=51206 width=60)
++ Hash Join  (cost=77.15..2197.67 rows=51206 width=60)
+    Hash Cond: (t1.a = t3.e)
+-   ->  Nested Loop  (cost=0.00..0.00 rows=8064 width=68)
+-         Join Filter: (t1.a = t2.c)
++   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=68)
++         Hash Cond: (t1.a = t2.c)
+          ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+    ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+          ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+@@ -459,8 +459,8 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -531,8 +531,8 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -548,15 +548,15 @@
+ INFO:  -----------------------------------------------------------------------------
+                                QUERY PLAN                               
+ ------------------------------------------------------------------------
+- Hash Join  (cost=38.58..1850.96 rows=51206 width=60)
+-   Hash Cond: (t1.a = t2.c)
+-   ->  Nested Loop  (cost=0.00..0.00 rows=8064 width=68)
+-         Join Filter: (t1.a = t3.e)
++ Hash Join  (cost=77.15..2197.67 rows=51206 width=60)
++   Hash Cond: (t1.a = t3.e)
++   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=68)
++         Hash Cond: (t1.a = t2.c)
+          ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+    ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+-         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+ (9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+@@ -593,8 +593,8 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -665,8 +665,8 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -679,12 +679,12 @@
+ INFO:  -----------------------------------------------------------------------------
+                                QUERY PLAN                               
+ ------------------------------------------------------------------------
+- Hash Join  (cost=38.58..1850.96 rows=51206 width=60)
++ Hash Join  (cost=77.15..1850.96 rows=51206 width=60)
+    Hash Cond: (t2.c = t1.a)
+-   ->  Nested Loop  (cost=0.00..0.00 rows=8064 width=8)
+-         Join Filter: (t2.c = t3.e)
++   ->  Hash Join  (cost=38.58..0.00 rows=8064 width=8)
++         Hash Cond: (t2.c = t3.e)
+          ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+                ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+    ->  Hash  (cost=22.70..22.70 rows=1270 width=64)
+          ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+@@ -727,8 +727,8 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -799,25 +799,25 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+                                QUERY PLAN                               
+ ------------------------------------------------------------------------
+- Nested Loop  (cost=38.58..0.00 rows=51206 width=60)
+-   Join Filter: (t1.a = t3.e)
++ Hash Join  (cost=77.15..0.00 rows=51206 width=60)
++   Hash Cond: (t1.a = t3.e)
+    ->  Hash Join  (cost=38.58..346.71 rows=8064 width=68)
+          Hash Cond: (t1.a = t2.c)
+          ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+          ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
++   ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+          ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+ (9 rows)
+ 
+@@ -861,12 +861,12 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/hashjoin_to_mergejoin.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/hashjoin_to_mergejoin.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/hashjoin_to_mergejoin.out	2026-11-18 16:57:06.664867650 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/hashjoin_to_mergejoin.out	2026-11-19 15:13:51.107679540 +0300
+@@ -393,8 +393,8 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -411,21 +411,18 @@
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                                
+--------------------------------------------------------------------------
+- Hash Join  (cost=214.92..1850.96 rows=51206 width=60)
++                               QUERY PLAN                               
++------------------------------------------------------------------------
++ Hash Join  (cost=77.15..2197.67 rows=51206 width=60)
+    Hash Cond: (t1.a = t3.e)
+-   ->  Merge Join  (cost=176.34..0.00 rows=8064 width=68)
+-         Merge Cond: (t1.a = t2.c)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
+-               Sort Key: t1.a
+-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-               Sort Key: t2.c
++   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=68)
++         Hash Cond: (t1.a = t2.c)
++         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+    ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+          ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-(12 rows)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -458,8 +455,8 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -530,8 +527,8 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -545,21 +542,18 @@
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                                
+--------------------------------------------------------------------------
+- Hash Join  (cost=214.92..1850.96 rows=51206 width=60)
+-   Hash Cond: (t1.a = t2.c)
+-   ->  Merge Join  (cost=176.34..0.00 rows=8064 width=68)
+-         Merge Cond: (t1.a = t3.e)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
+-               Sort Key: t1.a
+-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-               Sort Key: t3.e
+-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++                               QUERY PLAN                               
++------------------------------------------------------------------------
++ Hash Join  (cost=77.15..2197.67 rows=51206 width=60)
++   Hash Cond: (t1.a = t3.e)
++   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=68)
++         Hash Cond: (t1.a = t2.c)
++         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+    ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+-         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-(12 rows)
++         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -595,8 +589,8 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -667,8 +661,8 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -681,19 +675,16 @@
+ INFO:  -----------------------------------------------------------------------------
+                                QUERY PLAN                               
+ ------------------------------------------------------------------------
+- Hash Join  (cost=214.92..1850.96 rows=51206 width=60)
++ Hash Join  (cost=77.15..1850.96 rows=51206 width=60)
+    Hash Cond: (t2.c = t1.a)
+-   ->  Merge Join  (cost=176.34..0.00 rows=8064 width=8)
+-         Merge Cond: (t2.c = t3.e)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-               Sort Key: t2.c
+-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-               Sort Key: t3.e
++   ->  Hash Join  (cost=38.58..0.00 rows=8064 width=8)
++         Hash Cond: (t2.c = t3.e)
++         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+                ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+    ->  Hash  (cost=22.70..22.70 rows=1270 width=64)
+          ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-(12 rows)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -732,8 +723,8 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -804,30 +795,27 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                                  QUERY PLAN                                  
+-------------------------------------------------------------------------------
+- Merge Join  (cost=958.13..0.00 rows=51206 width=60)
+-   Merge Cond: (t1.a = t3.e)
+-   ->  Sort  (cost=869.96..890.12 rows=8064 width=68)
+-         Sort Key: t1.a
+-         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=68)
+-               Hash Cond: (t1.a = t2.c)
+-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-         Sort Key: t3.e
++                               QUERY PLAN                               
++------------------------------------------------------------------------
++ Hash Join  (cost=77.15..0.00 rows=51206 width=60)
++   Hash Cond: (t1.a = t3.e)
++   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=68)
++         Hash Cond: (t1.a = t2.c)
++         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++   ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+          ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-(12 rows)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -869,12 +857,12 @@
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/mergejoin_to_hashjoin.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/mergejoin_to_hashjoin.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/mergejoin_to_hashjoin.out	2026-11-18 16:57:06.668867857 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/mergejoin_to_hashjoin.out	2026-11-19 15:13:51.163681768 +0300
+@@ -226,7 +226,8 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			NestLoop
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+@@ -299,17 +300,16 @@
+ INFO:  Scan Path Type:			IndexScan
+ INFO:  
+ 
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			NestLoop
++INFO:  Path type:			MergeJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+@@ -319,20 +319,23 @@
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                                              QUERY PLAN                                               
+--------------------------------------------------------------------------------------------------------
+- Merge Join  (cost=20000000088.53..976.42 rows=51206 width=108)
+-   Merge Cond: (t1.a = t3.e)
+-   ->  Nested Loop  (cost=20000000000.36..100.00 rows=8064 width=72)
+-         ->  Index Scan using t1_a_idx on t1  (cost=10000000000.15..10000000067.20 rows=1270 width=36)
+-         ->  Bitmap Heap Scan on t2  (cost=0.21..4.28 rows=6 width=36)
+-               Recheck Cond: (t1.a = c)
+-               ->  Bitmap Index Scan on t2_c_idx  (cost=0.00..0.20 rows=6 width=0)
+-                     Index Cond: (c = t1.a)
++                                  QUERY PLAN                                   
++-------------------------------------------------------------------------------
++ Merge Join  (cost=264.52..1166.28 rows=51206 width=108)
++   Merge Cond: (t3.e = t1.a)
+    ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+          Sort Key: t3.e
+          ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+-(11 rows)
++   ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
++         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
++               Merge Cond: (t1.a = t2.c)
++               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
++                     Sort Key: t1.a
++                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
++                     Sort Key: t2.c
++                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
++(14 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -374,17 +377,16 @@
+ INFO:  Scan Path Type:			IndexScan
+ INFO:  
+ 
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			NestLoop
++INFO:  Path type:			MergeJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+@@ -457,12 +459,11 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+@@ -474,20 +475,23 @@
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                                              QUERY PLAN                                               
+--------------------------------------------------------------------------------------------------------
+- Merge Join  (cost=20000000088.53..976.42 rows=51206 width=108)
+-   Merge Cond: (t1.a = t2.c)
+-   ->  Nested Loop  (cost=20000000000.36..100.00 rows=8064 width=72)
+-         ->  Index Scan using t1_a_idx on t1  (cost=10000000000.15..10000000067.20 rows=1270 width=36)
+-         ->  Bitmap Heap Scan on t3  (cost=0.21..4.28 rows=6 width=36)
+-               Recheck Cond: (t1.a = e)
+-               ->  Bitmap Index Scan on t3_e_idx  (cost=0.00..0.20 rows=6 width=0)
+-                     Index Cond: (e = t1.a)
++                                  QUERY PLAN                                   
++-------------------------------------------------------------------------------
++ Merge Join  (cost=264.52..1166.28 rows=51206 width=108)
++   Merge Cond: (t3.e = t1.a)
+    ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-         Sort Key: t2.c
+-         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+-(11 rows)
++         Sort Key: t3.e
++         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
++   ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
++         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
++               Merge Cond: (t1.a = t2.c)
++               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
++                     Sort Key: t1.a
++                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
++                     Sort Key: t2.c
++                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
++(14 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -532,12 +536,11 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+@@ -770,33 +773,36 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			NestLoop
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                                
+--------------------------------------------------------------------------
+- Hash Join  (cost=214.92..0.00 rows=51206 width=108)
+-   Hash Cond: (t1.a = t3.e)
+-   ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
+-         Merge Cond: (t1.a = t2.c)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-               Sort Key: t1.a
+-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-               Sort Key: t2.c
+-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+-   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++                                  QUERY PLAN                                   
++-------------------------------------------------------------------------------
++ Merge Join  (cost=264.52..100.00 rows=51206 width=108)
++   Merge Cond: (t3.e = t1.a)
++   ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
++         Sort Key: t3.e
+          ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+-(12 rows)
++   ->  Materialize  (cost=176.34..323.83 rows=8064 width=72)
++         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=72)
++               Merge Cond: (t1.a = t2.c)
++               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
++                     Sort Key: t1.a
++                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
++                     Sort Key: t2.c
++                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
++(14 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -844,15 +850,16 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			NestLoop
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/mergejoin_to_nestloop.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/mergejoin_to_nestloop.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/mergejoin_to_nestloop.out	2026-11-18 16:57:06.668867857 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/mergejoin_to_nestloop.out	2026-11-19 15:13:51.211683676 +0300
+@@ -204,7 +204,7 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+@@ -274,7 +274,7 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+@@ -341,7 +341,7 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+@@ -404,15 +404,15 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			MergeJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+@@ -425,19 +425,19 @@
+                                   QUERY PLAN                                   
+ -------------------------------------------------------------------------------
+  Merge Join  (cost=264.52..1166.28 rows=51206 width=60)
+-   Merge Cond: (t2.c = t1.a)
++   Merge Cond: (t3.e = t1.a)
+    ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-         Sort Key: t2.c
+-         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++         Sort Key: t3.e
++         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+    ->  Materialize  (cost=176.34..323.83 rows=8064 width=68)
+          ->  Merge Join  (cost=176.34..303.67 rows=8064 width=68)
+-               Merge Cond: (t1.a = t3.e)
++               Merge Cond: (t1.a = t2.c)
+                ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
+                      Sort Key: t1.a
+                      ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+                ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-                     Sort Key: t3.e
+-                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++                     Sort Key: t2.c
++                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+ (14 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+@@ -471,15 +471,15 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			MergeJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+@@ -543,12 +543,12 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			MergeJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+@@ -610,12 +610,12 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			MergeJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+@@ -682,8 +682,9 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+@@ -749,8 +750,9 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+@@ -818,33 +820,35 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                                
+--------------------------------------------------------------------------
+- Nested Loop  (cost=176.34..0.00 rows=51206 width=60)
+-   Join Filter: (t1.a = t3.e)
+-   ->  Merge Join  (cost=176.34..303.67 rows=8064 width=68)
+-         Merge Cond: (t1.a = t2.c)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
+-               Sort Key: t1.a
+-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-               Sort Key: t2.c
+-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
++                                  QUERY PLAN                                   
++-------------------------------------------------------------------------------
++ Merge Join  (cost=264.52..100.00 rows=51206 width=60)
++   Merge Cond: (t3.e = t1.a)
++   ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
++         Sort Key: t3.e
+          ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-(12 rows)
++   ->  Materialize  (cost=176.34..323.83 rows=8064 width=68)
++         ->  Merge Join  (cost=176.34..303.67 rows=8064 width=68)
++               Merge Cond: (t1.a = t2.c)
++               ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
++                     Sort Key: t1.a
++                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++               ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
++                     Sort Key: t2.c
++                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++(14 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -883,15 +887,15 @@
+ INFO:  Path type:			MergeJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
+ INFO:  Path type:			MergeJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
++INFO:  Path type:			MergeJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/nestloop_to_mergejoin.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/nestloop_to_mergejoin.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/nestloop_to_mergejoin.out	2026-11-18 16:57:06.668867857 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/nestloop_to_mergejoin.out	2026-11-19 15:13:51.259685584 +0300
+@@ -199,15 +199,15 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -269,29 +269,29 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                               
+-------------------------------------------------------------------------
+- Nested Loop  (cost=0.00..177887.15 rows=51206 width=60)
+-   Join Filter: (t1.a = t3.e)
+-   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=68)
+-         Join Filter: (t1.a = t2.c)
+-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
++                                  QUERY PLAN                                  
++------------------------------------------------------------------------------
++ Hash Join  (cost=447.51..2264.97 rows=51206 width=60)
++   Hash Cond: (t1.a = t2.c)
++   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++   ->  Hash  (cost=346.71..346.71 rows=8064 width=8)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=8)
++               Hash Cond: (t2.c = t3.e)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+ (9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+@@ -331,15 +331,15 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -394,38 +394,36 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                                
+--------------------------------------------------------------------------
+- Nested Loop  (cost=176.34..128038.83 rows=51206 width=60)
+-   Join Filter: (t1.a = t3.e)
+-   ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Merge Join  (cost=176.34..0.00 rows=8064 width=68)
+-         Merge Cond: (t1.a = t2.c)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
+-               Sort Key: t1.a
+-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-               Sort Key: t2.c
++                                  QUERY PLAN                                  
++------------------------------------------------------------------------------
++ Hash Join  (cost=447.51..2264.97 rows=51206 width=60)
++   Hash Cond: (t1.a = t2.c)
++   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++   ->  Hash  (cost=346.71..346.71 rows=8064 width=8)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=8)
++               Hash Cond: (t2.c = t3.e)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-(11 rows)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -458,21 +456,21 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -530,35 +528,33 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                                
+--------------------------------------------------------------------------
+- Nested Loop  (cost=176.34..128038.83 rows=51206 width=60)
+-   Join Filter: (t1.a = t2.c)
+-   ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Merge Join  (cost=176.34..0.00 rows=8064 width=68)
+-         Merge Cond: (t1.a = t3.e)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=64)
+-               Sort Key: t1.a
+-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-               Sort Key: t3.e
+-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-(11 rows)
++                                  QUERY PLAN                                  
++------------------------------------------------------------------------------
++ Hash Join  (cost=447.51..2264.97 rows=51206 width=60)
++   Hash Cond: (t1.a = t2.c)
++   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++   ->  Hash  (cost=346.71..346.71 rows=8064 width=8)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=8)
++               Hash Cond: (t2.c = t3.e)
++               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -594,18 +590,18 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -666,32 +662,30 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                               
+-------------------------------------------------------------------------
+- Nested Loop  (cost=176.34..128038.83 rows=51206 width=60)
+-   Join Filter: (t1.a = t2.c)
++                                  QUERY PLAN                                  
++------------------------------------------------------------------------------
++ Hash Join  (cost=100.80..1918.26 rows=51206 width=60)
++   Hash Cond: (t1.a = t2.c)
+    ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-   ->  Merge Join  (cost=176.34..0.00 rows=8064 width=8)
+-         Merge Cond: (t2.c = t3.e)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-               Sort Key: t2.c
++   ->  Hash  (cost=0.00..0.00 rows=8064 width=8)
++         ->  Hash Join  (cost=38.58..0.00 rows=8064 width=8)
++               Hash Cond: (t2.c = t3.e)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-               Sort Key: t3.e
+-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-(11 rows)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -730,15 +724,15 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -799,33 +793,30 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			NestLoop
++INFO:  Path type:			NestLoop
++INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+                                   QUERY PLAN                                  
+ ------------------------------------------------------------------------------
+- Merge Join  (cost=24853.49..0.00 rows=51206 width=60)
+-   Merge Cond: (t1.a = t3.e)
+-   ->  Sort  (cost=24765.32..24785.48 rows=8064 width=68)
+-         Sort Key: t1.a
+-         ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=68)
+-               Join Filter: (t1.a = t2.c)
+-               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-               ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Sort  (cost=88.17..91.35 rows=1270 width=4)
+-         Sort Key: t3.e
+-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-(12 rows)
++ Hash Join  (cost=447.51..0.00 rows=51206 width=60)
++   Hash Cond: (t1.a = t2.c)
++   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++   ->  Hash  (cost=346.71..346.71 rows=8064 width=8)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=8)
++               Hash Cond: (t2.c = t3.e)
++               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -864,15 +855,15 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
+-INFO:  Path type:			MergeJoin
++INFO:  Path type:			NestLoop
++INFO:  Path type:			NestLoop
++INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/nestloop_to_hashjoin.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/nestloop_to_hashjoin.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/nestloop_to_hashjoin.out	2026-11-18 16:57:06.668867857 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/nestloop_to_hashjoin.out	2026-11-19 15:13:51.307687492 +0300
+@@ -199,15 +199,15 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -269,29 +269,29 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                               
+-------------------------------------------------------------------------
+- Nested Loop  (cost=0.00..177887.15 rows=51206 width=60)
+-   Join Filter: (t1.a = t3.e)
+-   ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=68)
+-         Join Filter: (t1.a = t2.c)
+-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
++                                  QUERY PLAN                                  
++------------------------------------------------------------------------------
++ Hash Join  (cost=447.51..2264.97 rows=51206 width=60)
++   Hash Cond: (t1.a = t2.c)
++   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++   ->  Hash  (cost=346.71..346.71 rows=8064 width=8)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=8)
++               Hash Cond: (t2.c = t3.e)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+ (9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+@@ -331,15 +331,15 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -394,35 +394,36 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                               
+-------------------------------------------------------------------------
+- Nested Loop  (cost=38.58..79087.15 rows=51206 width=60)
+-   Join Filter: (t1.a = t3.e)
+-   ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Hash Join  (cost=38.58..0.00 rows=8064 width=68)
+-         Hash Cond: (t1.a = t2.c)
+-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                                  QUERY PLAN                                  
++------------------------------------------------------------------------------
++ Hash Join  (cost=447.51..2264.97 rows=51206 width=60)
++   Hash Cond: (t1.a = t2.c)
++   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++   ->  Hash  (cost=346.71..346.71 rows=8064 width=8)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=8)
++               Hash Cond: (t2.c = t3.e)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-(8 rows)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -455,21 +456,21 @@
+ INFO:  Scan Path Type:			SeqScan
+ INFO:  
+ 
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -527,32 +528,33 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                               
+-------------------------------------------------------------------------
+- Nested Loop  (cost=38.58..79087.15 rows=51206 width=60)
+-   Join Filter: (t1.a = t2.c)
+-   ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-   ->  Hash Join  (cost=38.58..0.00 rows=8064 width=68)
+-         Hash Cond: (t1.a = t3.e)
+-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-(8 rows)
++                                  QUERY PLAN                                  
++------------------------------------------------------------------------------
++ Hash Join  (cost=447.51..2264.97 rows=51206 width=60)
++   Hash Cond: (t1.a = t2.c)
++   ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
++   ->  Hash  (cost=346.71..346.71 rows=8064 width=8)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=8)
++               Hash Cond: (t2.c = t3.e)
++               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -588,18 +590,18 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			HashJoin
+-INFO:  Path type:			HashJoin
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -665,24 +667,25 @@
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                               
+-------------------------------------------------------------------------
+- Nested Loop  (cost=38.58..79087.15 rows=51206 width=60)
+-   Join Filter: (t1.a = t2.c)
++                                  QUERY PLAN                                  
++------------------------------------------------------------------------------
++ Hash Join  (cost=100.80..1918.26 rows=51206 width=60)
++   Hash Cond: (t1.a = t2.c)
+    ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+-   ->  Hash Join  (cost=38.58..0.00 rows=8064 width=8)
+-         Hash Cond: (t2.c = t3.e)
+-         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+-         ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+-               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+-(8 rows)
++   ->  Hash  (cost=0.00..0.00 rows=8064 width=8)
++         ->  Hash Join  (cost=38.58..0.00 rows=8064 width=8)
++               Hash Cond: (t2.c = t3.e)
++               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++(9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+ INFO:  -----------------------------------------------------------------------------
+@@ -726,10 +729,10 @@
+ INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+@@ -790,11 +793,11 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			NestLoop
++INFO:  Path type:			NestLoop
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+@@ -805,14 +808,14 @@
+                                QUERY PLAN                               
+ ------------------------------------------------------------------------
+  Hash Join  (cost=38.58..0.00 rows=51206 width=60)
+-   Hash Cond: (t1.a = t3.e)
++   Hash Cond: (t1.a = t2.c)
+    ->  Nested Loop  (cost=0.00..24242.08 rows=8064 width=68)
+-         Join Filter: (t1.a = t2.c)
++         Join Filter: (t1.a = t3.e)
+          ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=64)
+          ->  Materialize  (cost=0.00..29.05 rows=1270 width=4)
+-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
++               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
+    ->  Hash  (cost=22.70..22.70 rows=1270 width=4)
+-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=4)
++         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=4)
+ (9 rows)
+ 
+ select t1 from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+@@ -852,11 +855,11 @@
+ INFO:  Path type:			NestLoop
+ INFO:  Path type:			NestLoop
+ INFO:  ---------------------------- RELATION -----------------------------
+-INFO:  Path type:			NestLoop
+-INFO:  Path type:			NestLoop
+-INFO:  ---------------------------- RELATION -----------------------------
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
++INFO:  ---------------------------- RELATION -----------------------------
++INFO:  Path type:			NestLoop
++INFO:  Path type:			NestLoop
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+ INFO:  Path type:			HashJoin
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/indexscan_to_indexonlyscan.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/indexscan_to_indexonlyscan.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/indexscan_to_indexonlyscan.out	2026-11-18 16:57:06.668867857 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/indexscan_to_indexonlyscan.out	2026-11-19 15:13:51.355689401 +0300
+@@ -219,17 +219,18 @@
+ INFO:  
+ 
+ INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                                       QUERY PLAN                                       
+-----------------------------------------------------------------------------------------
+- Nested Loop  (cost=10000000000.14..1.30 rows=15 width=4)
++                                          QUERY PLAN                                           
++-----------------------------------------------------------------------------------------------
++ Hash Join  (cost=0.19..1.54 rows=15 width=4)
++   Hash Cond: (t1.a = t2.c)
+    ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=4)
+-   ->  Index Only Scan using t2_idx_c on t2  (cost=10000000000.14..0.00 rows=1 width=4)
+-         Index Cond: (c = t1.a)
+-(4 rows)
++   ->  Hash  (cost=0.00..0.00 rows=15 width=4)
++         ->  Index Only Scan using t2_idx_c on t2  (cost=10000000000.14..0.00 rows=15 width=4)
++(5 rows)
+ 
+ select t2.c from t2 join t1 on t2.c = t1.a;
+ INFO:  -----------------------------------------------------------------------------
+@@ -257,7 +258,7 @@
+ INFO:  
+ 
+ INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/seqscan_to_indexscan.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/seqscan_to_indexscan.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/seqscan_to_indexscan.out	2026-11-18 16:57:06.672868064 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/seqscan_to_indexscan.out	2026-11-19 15:13:51.399691150 +0300
+@@ -215,17 +215,18 @@
+ INFO:  
+ 
+ INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                               QUERY PLAN                               
+-------------------------------------------------------------------------
+- Nested Loop  (cost=0.14..1.30 rows=15 width=72)
++                                  QUERY PLAN                                   
++-------------------------------------------------------------------------------
++ Hash Join  (cost=0.19..1.54 rows=15 width=72)
++   Hash Cond: (t2.c = t1.a)
+    ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=36)
+-   ->  Index Scan using t1_idx on t1  (cost=0.14..0.00 rows=1 width=36)
+-         Index Cond: (a = t2.c)
+-(4 rows)
++   ->  Hash  (cost=0.00..0.00 rows=15 width=36)
++         ->  Index Scan using t1_idx on t1  (cost=0.14..0.00 rows=15 width=36)
++(5 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c;
+ INFO:  -----------------------------------------------------------------------------
+@@ -253,7 +254,7 @@
+ INFO:  
+ 
+ INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/seqscan_to_indexonlyscan.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/seqscan_to_indexonlyscan.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/seqscan_to_indexonlyscan.out	2026-11-18 16:57:06.668867857 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/seqscan_to_indexonlyscan.out	2026-11-19 15:13:51.459693536 +0300
+@@ -215,17 +215,18 @@
+ INFO:  
+ 
+ INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+-                                      QUERY PLAN                                      
+---------------------------------------------------------------------------------------
+- Nested Loop  (cost=10000000000.14..1.30 rows=15 width=8)
++                                         QUERY PLAN                                          
++---------------------------------------------------------------------------------------------
++ Hash Join  (cost=0.19..1.54 rows=15 width=8)
++   Hash Cond: (t2.c = t1.a)
+    ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=4)
+-   ->  Index Only Scan using t1_idx on t1  (cost=10000000000.14..0.00 rows=1 width=4)
+-         Index Cond: (a = t2.c)
+-(4 rows)
++   ->  Hash  (cost=0.00..0.00 rows=15 width=4)
++         ->  Index Only Scan using t1_idx on t1  (cost=10000000000.14..0.00 rows=15 width=4)
++(5 rows)
+ 
+ select t1.a, t2.c from t1 join t2 on t1.a = t2.c;
+ INFO:  -----------------------------------------------------------------------------
+@@ -253,7 +254,7 @@
+ INFO:  
+ 
+ INFO:  Path type:			HashJoin
+-INFO:  Path type:			NestLoop
++INFO:  Path type:			HashJoin
+ INFO:  -----------------------------------------------------------------------------
+ INFO:                           LOGGING INFORMATION END
+ INFO:  -----------------------------------------------------------------------------
+diff -U3 /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/multitransforming_test.out /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/multitransforming_test.out
+--- /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/expected/multitransforming_test.out	2026-11-18 16:57:06.668867857 +0300
++++ /home/shurik/Documents/Postgres-Professional/pg_plan_fuzz/test/results/multitransforming_test.out	2026-11-19 15:13:51.567697829 +0300
+@@ -149,21 +149,20 @@
+ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                      QUERY PLAN                                      
+ -------------------------------------------------------------------------------------
+- Hash Join  (cost=139.38..11843.55 rows=325158 width=144)
+-   Hash Cond: (t3.e = t1.a)
+-   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+-         Hash Cond: (t3.e = t4.g)
+-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+-         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+-               ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+-   ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
+-         ->  Merge Join  (cost=88.32..0.00 rows=8064 width=72)
+-               Merge Cond: (t1.a = t2.c)
++ Hash Join  (cost=463.39..12167.57 rows=325158 width=144)
++   Hash Cond: (t1.a = t3.e)
++   ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
++         Hash Cond: (t2.c = t1.a)
++         ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
++         ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+                ->  Index Scan using t1_a on t1  (cost=0.15..0.00 rows=1270 width=36)
+-               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-                     Sort Key: t2.c
+-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+-(14 rows)
++   ->  Hash  (cost=346.71..346.71 rows=8064 width=72)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
++               Hash Cond: (t3.e = t4.g)
++               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
++(13 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+  a  | b  | c  | d  | e  | f  | g  | h  
+@@ -189,21 +188,20 @@
+ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+                                      QUERY PLAN                                      
+ -------------------------------------------------------------------------------------
+- Hash Join  (cost=139.38..11843.55 rows=325158 width=144)
+-   Hash Cond: (t3.e = t1.a)
+-   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+-         Hash Cond: (t3.e = t4.g)
+-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+-         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+-               ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+-   ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
+-         ->  Merge Join  (cost=88.32..0.00 rows=8064 width=72)
+-               Merge Cond: (t1.a = t2.c)
+-               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-                     Sort Key: t1.a
+-                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
++ Hash Join  (cost=463.39..12167.57 rows=325158 width=144)
++   Hash Cond: (t1.a = t3.e)
++   ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
++         Hash Cond: (t1.a = t2.c)
++         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
++         ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+                ->  Index Scan using t2_c on t2  (cost=0.15..0.00 rows=1270 width=36)
+-(14 rows)
++   ->  Hash  (cost=346.71..346.71 rows=8064 width=72)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
++               Hash Cond: (t3.e = t4.g)
++               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
++(13 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+  a  | b  | c  | d  | e  | f  | g  | h  
+@@ -227,25 +225,22 @@
+ 
+ set pg_plan_fuzz.scan_recourse_level = 3;
+ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+-                                     QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+- Hash Join  (cost=116.68..11820.85 rows=325158 width=144)
+-   Hash Cond: (t3.e = t1.a)
+-   ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
+-         Hash Cond: (t4.g = t3.e)
+-         ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+-         ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+-               ->  Index Scan using t3_e on t3  (cost=0.15..0.00 rows=1270 width=36)
+-   ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
+-         ->  Merge Join  (cost=176.34..0.00 rows=8064 width=72)
+-               Merge Cond: (t1.a = t2.c)
+-               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-                     Sort Key: t1.a
+-                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+-               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-                     Sort Key: t2.c
+-                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+-(16 rows)
++                                        QUERY PLAN                                         
++-------------------------------------------------------------------------------------------
++ Hash Join  (cost=463.39..12167.57 rows=325158 width=144)
++   Hash Cond: (t1.a = t3.e)
++   ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
++         Hash Cond: (t1.a = t2.c)
++         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
++   ->  Hash  (cost=324.01..324.01 rows=8064 width=72)
++         ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
++               Hash Cond: (t4.g = t3.e)
++               ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
++                     ->  Index Scan using t3_e on t3  (cost=0.15..0.00 rows=1270 width=36)
++(13 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+  a  | b  | c  | d  | e  | f  | g  | h  
+@@ -269,25 +264,21 @@
+ 
+ set pg_plan_fuzz.scan_recourse_level = 4;
+ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+-                                     QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+- Hash Join  (cost=116.68..11820.85 rows=325158 width=144)
+-   Hash Cond: (t3.e = t1.a)
+-   ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
+-         Hash Cond: (t3.e = t4.g)
+-         ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+-         ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+-               ->  Index Scan using t4_g on t4  (cost=0.15..0.00 rows=1270 width=36)
+-   ->  Hash  (cost=0.00..0.00 rows=8064 width=72)
+-         ->  Merge Join  (cost=176.34..0.00 rows=8064 width=72)
+-               Merge Cond: (t1.a = t2.c)
+-               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-                     Sort Key: t1.a
+-                     ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+-               ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-                     Sort Key: t2.c
++                                  QUERY PLAN                                   
++-------------------------------------------------------------------------------
++ Nested Loop  (cost=77.30..5275.15 rows=325158 width=144)
++   ->  Hash Join  (cost=77.15..2197.67 rows=51206 width=108)
++         Hash Cond: (t1.a = t3.e)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
++               Hash Cond: (t1.a = t2.c)
++               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+                      ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+-(16 rows)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
++   ->  Index Scan using t4_g on t4  (cost=0.15..0.00 rows=6 width=36)
++         Index Cond: (g = t1.a)
++(12 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+  a  | b  | c  | d  | e  | f  | g  | h  
+@@ -312,25 +303,22 @@
+ set pg_plan_fuzz.join_recourse_level = 18;
+ set pg_plan_fuzz.scan_recourse_level = 1;
+ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+-                                     QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+- Hash Join  (cost=974.00..11524.42 rows=325158 width=144)
++                                  QUERY PLAN                                   
++-------------------------------------------------------------------------------
++ Hash Join  (cost=93.03..11624.42 rows=325158 width=144)
+    Hash Cond: (t2.c = t1.a)
+-   ->  Merge Join  (cost=958.13..0.00 rows=51206 width=108)
+-         Merge Cond: (t3.e = t2.c)
+-         ->  Sort  (cost=869.96..890.12 rows=8064 width=72)
+-               Sort Key: t3.e
+-               ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+-                     Hash Cond: (t3.e = t4.g)
+-                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+-                     ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+-                           ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-               Sort Key: t2.c
++   ->  Hash Join  (cost=77.15..100.00 rows=51206 width=108)
++         Hash Cond: (t2.c = t4.g)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
++               Hash Cond: (t2.c = t3.e)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++               ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+    ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+          ->  Index Scan using t1_a on t1  (cost=0.15..0.00 rows=1270 width=36)
+-(16 rows)
++(13 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+  a  | b  | c  | d  | e  | f  | g  | h  
+@@ -354,23 +342,21 @@
+ 
+ set pg_plan_fuzz.scan_recourse_level = 2;
+ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+-                                     QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+- Hash Join  (cost=908.68..11547.12 rows=325158 width=144)
++                                  QUERY PLAN                                   
++-------------------------------------------------------------------------------
++ Hash Join  (cost=77.30..11547.12 rows=325158 width=144)
+    Hash Cond: (t2.c = t1.a)
+-   ->  Merge Join  (cost=870.11..0.00 rows=51206 width=108)
+-         Merge Cond: (t3.e = t2.c)
+-         ->  Sort  (cost=869.96..890.12 rows=8064 width=72)
+-               Sort Key: t3.e
+-               ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
+-                     Hash Cond: (t3.e = t4.g)
+-                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+-                     ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+-                           ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+-         ->  Index Scan using t2_c on t2  (cost=0.15..0.00 rows=1270 width=36)
++   ->  Nested Loop  (cost=38.73..0.00 rows=51206 width=108)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
++               Hash Cond: (t3.e = t4.g)
++               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
++         ->  Index Scan using t2_c on t2  (cost=0.15..0.00 rows=6 width=36)
++               Index Cond: (c = t3.e)
+    ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+          ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+-(14 rows)
++(12 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+  a  | b  | c  | d  | e  | f  | g  | h  
+@@ -394,25 +380,22 @@
+ 
+ set pg_plan_fuzz.scan_recourse_level = 3;
+ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+-                                           QUERY PLAN                                            
+--------------------------------------------------------------------------------------------------
+- Hash Join  (cost=974.00..11547.12 rows=325158 width=144)
++                                        QUERY PLAN                                         
++-------------------------------------------------------------------------------------------
++ Hash Join  (cost=93.03..11647.12 rows=325158 width=144)
+    Hash Cond: (t2.c = t1.a)
+-   ->  Merge Join  (cost=935.43..0.00 rows=51206 width=108)
+-         Merge Cond: (t3.e = t2.c)
+-         ->  Sort  (cost=847.26..867.42 rows=8064 width=72)
+-               Sort Key: t3.e
+-               ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
+-                     Hash Cond: (t4.g = t3.e)
+-                     ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+-                     ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+-                           ->  Index Scan using t3_e on t3  (cost=0.15..0.00 rows=1270 width=36)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-               Sort Key: t2.c
++   ->  Hash Join  (cost=54.45..100.00 rows=51206 width=108)
++         Hash Cond: (t2.c = t4.g)
++         ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
++               Hash Cond: (t2.c = t3.e)
+                ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
++                     ->  Index Scan using t3_e on t3  (cost=0.15..0.00 rows=1270 width=36)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++               ->  Seq Scan on t4  (cost=0.00..22.70 rows=1270 width=36)
+    ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+          ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+-(16 rows)
++(13 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+  a  | b  | c  | d  | e  | f  | g  | h  
+@@ -436,25 +419,21 @@
+ 
+ set pg_plan_fuzz.scan_recourse_level = 4;
+ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+-                                           QUERY PLAN                                            
+--------------------------------------------------------------------------------------------------
+- Hash Join  (cost=974.00..11547.12 rows=325158 width=144)
+-   Hash Cond: (t2.c = t1.a)
+-   ->  Merge Join  (cost=935.43..0.00 rows=51206 width=108)
+-         Merge Cond: (t3.e = t2.c)
+-         ->  Sort  (cost=847.26..867.42 rows=8064 width=72)
+-               Sort Key: t3.e
+-               ->  Hash Join  (cost=15.88..324.01 rows=8064 width=72)
+-                     Hash Cond: (t3.e = t4.g)
+-                     ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+-                     ->  Hash  (cost=0.00..0.00 rows=1270 width=36)
+-                           ->  Index Scan using t4_g on t4  (cost=0.15..0.00 rows=1270 width=36)
+-         ->  Sort  (cost=88.17..91.35 rows=1270 width=36)
+-               Sort Key: t2.c
+-               ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
+-   ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
+-         ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
+-(16 rows)
++                                  QUERY PLAN                                   
++-------------------------------------------------------------------------------
++ Nested Loop  (cost=77.30..5275.15 rows=325158 width=144)
++   ->  Hash Join  (cost=77.15..2197.67 rows=51206 width=108)
++         Hash Cond: (t1.a = t3.e)
++         ->  Hash Join  (cost=38.58..346.71 rows=8064 width=72)
++               Hash Cond: (t1.a = t2.c)
++               ->  Seq Scan on t1  (cost=0.00..22.70 rows=1270 width=36)
++               ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++                     ->  Seq Scan on t2  (cost=0.00..22.70 rows=1270 width=36)
++         ->  Hash  (cost=22.70..22.70 rows=1270 width=36)
++               ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
++   ->  Index Scan using t4_g on t4  (cost=0.15..0.00 rows=6 width=36)
++         Index Cond: (g = t1.a)
++(12 rows)
+ 
+ select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e join t4 on t3.e = t4.g;
+  a  | b  | c  | d  | e  | f  | g  | h  

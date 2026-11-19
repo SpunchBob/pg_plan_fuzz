@@ -1,0 +1,324 @@
+drop table if exists t1;
+drop table if exists t2;
+drop table if exists t3;
+create table t1 
+(
+    a INT,
+    b TEXT
+);
+create table t2 
+(
+    c INT,
+    d TEXT
+);
+create table t3 
+(
+    e INT,
+    f TEXT
+);
+insert into t1
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t2
+values
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+insert into t3
+values 
+( 1, '1' ),
+( 2, '2' ),
+( 3, '3' ),
+( 4, '4' ),
+( 5, '5' ),
+( 6, '6' ),
+( 7, '7' ),
+( 8, '8' ),
+( 9, '9' ),
+( 10, '10' ),
+( 11, '11' ),
+( 12, '12' ),
+( 13, '13' ),
+( 14, '14' ),
+( 15, '15' );
+create index t1_idx_a on t1 ( a ) ;
+create index t1_idx_b on t1 ( b ) ;
+create index t2_idx_c on t2 ( c ) ;
+create index t2_idx_d on t2 ( d ) ;
+LOAD 'pg_plan_fuzz';
+INFO:  -----------------------------------------------------------------------------
+INFO:                           PG_PLAN_FUZZ EXTENSION INIT
+INFO:  -----------------------------------------------------------------------------
+set pg_plan_fuzz.dump_choices = on;
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  |===========	SET_REL_PATHLIST_HOOK POINT	===========|
+INFO:  
+INFO:  	current point position:		1
+INFO:  	current table:			t1
+INFO:  	count of parametred:		2
+INFO:  	count of not paramtered:	2
+INFO:  
+INFO:  	PATH DATA FROM PATHLIST		
+INFO:  
+INFO:  		id:			0
+INFO:  		pathtype:		IndexScan
+INFO:  		startup_cost:		0.135000
+INFO:  		total_cost:		0.161949
+INFO:  		is_sorted:		Yes
+INFO:  
+
+INFO:  		id:			1
+INFO:  		pathtype:		IndexScan
+INFO:  		startup_cost:		0.135000
+INFO:  		total_cost:		0.952500
+INFO:  		is_sorted:		Yes
+INFO:  
+
+INFO:  		id:			2
+INFO:  		pathtype:		SeqScan
+INFO:  		startup_cost:		0.000000
+INFO:  		total_cost:		1.150000
+INFO:  		is_sorted:		No
+INFO:  
+
+INFO:  		id:			3
+INFO:  		pathtype:		IndexScan
+INFO:  		startup_cost:		0.135000
+INFO:  		total_cost:		12.360000
+INFO:  		is_sorted:		Yes
+INFO:  
+
+INFO:  |===========================================================|
+
+
+INFO:  |===========	SET_REL_PATHLIST_HOOK POINT	===========|
+INFO:  
+INFO:  	current point position:		2
+INFO:  	current table:			t2
+INFO:  	count of parametred:		2
+INFO:  	count of not paramtered:	2
+INFO:  
+INFO:  	PATH DATA FROM PATHLIST		
+INFO:  
+INFO:  		id:			0
+INFO:  		pathtype:		IndexScan
+INFO:  		startup_cost:		0.135000
+INFO:  		total_cost:		0.161949
+INFO:  		is_sorted:		Yes
+INFO:  
+
+INFO:  		id:			1
+INFO:  		pathtype:		IndexScan
+INFO:  		startup_cost:		0.135000
+INFO:  		total_cost:		0.952500
+INFO:  		is_sorted:		Yes
+INFO:  
+
+INFO:  		id:			2
+INFO:  		pathtype:		SeqScan
+INFO:  		startup_cost:		0.000000
+INFO:  		total_cost:		1.150000
+INFO:  		is_sorted:		No
+INFO:  
+
+INFO:  		id:			3
+INFO:  		pathtype:		IndexScan
+INFO:  		startup_cost:		0.135000
+INFO:  		total_cost:		12.360000
+INFO:  		is_sorted:		Yes
+INFO:  
+
+INFO:  |===========================================================|
+
+
+INFO:  |===========	SET_REL_PATHLIST_HOOK POINT	===========|
+INFO:  
+INFO:  	current point position:		3
+INFO:  	current table:			t3
+INFO:  	count of parametred:		0
+INFO:  	count of not paramtered:	1
+INFO:  
+INFO:  	PATH DATA FROM PATHLIST		
+INFO:  
+INFO:  		id:			0
+INFO:  		pathtype:		SeqScan
+INFO:  		startup_cost:		0.000000
+INFO:  		total_cost:		22.700000
+INFO:  		is_sorted:		No
+INFO:  
+
+INFO:  |===========================================================|
+
+
+INFO:  |===========	STANDARD_JOIN_SEARCH POINT	===========|
+INFO:  
+INFO:  	current point position:		1
+INFO:  	GROUP:			
+INFO:  			rel:	t1
+INFO:  			rel:	t2
+INFO:  	count of parametred:		0
+INFO:  	count of not paramtered:	2
+INFO:  
+INFO:  	PATH DATA FROM PATHLIST		
+INFO:  
+INFO:  		id:			0
+INFO:  		pathtype:		HashJoin
+INFO:  		startup_cost:		1.337500
+INFO:  		total_cost:		2.693750
+INFO:  		is_sorted:		No
+INFO:  
+
+INFO:  		id:			1
+INFO:  		pathtype:		MergeJoin
+INFO:  		startup_cost:		2.886034
+INFO:  		total_cost:		3.186034
+INFO:  		is_sorted:		Yes
+INFO:  
+
+INFO:  
+INFO:  |===========================================================|
+
+
+INFO:  |===========	STANDARD_JOIN_SEARCH POINT	===========|
+INFO:  
+INFO:  	current point position:		2
+INFO:  	GROUP:			
+INFO:  			rel:	t1
+INFO:  			rel:	t3
+INFO:  	count of parametred:		0
+INFO:  	count of not paramtered:	2
+INFO:  
+INFO:  	PATH DATA FROM PATHLIST		
+INFO:  
+INFO:  		id:			0
+INFO:  		pathtype:		HashJoin
+INFO:  		startup_cost:		1.337500
+INFO:  		total_cost:		29.750000
+INFO:  		is_sorted:		No
+INFO:  
+
+INFO:  		id:			1
+INFO:  		pathtype:		MergeJoin
+INFO:  		startup_cost:		89.615408
+INFO:  		total_cost:		96.990408
+INFO:  		is_sorted:		Yes
+INFO:  
+
+INFO:  
+INFO:  |===========================================================|
+
+
+INFO:  |===========	STANDARD_JOIN_SEARCH POINT	===========|
+INFO:  
+INFO:  	current point position:		3
+INFO:  	GROUP:			
+INFO:  			rel:	t2
+INFO:  			rel:	t3
+INFO:  	count of parametred:		0
+INFO:  	count of not paramtered:	2
+INFO:  
+INFO:  	PATH DATA FROM PATHLIST		
+INFO:  
+INFO:  		id:			0
+INFO:  		pathtype:		HashJoin
+INFO:  		startup_cost:		1.337500
+INFO:  		total_cost:		29.750000
+INFO:  		is_sorted:		No
+INFO:  
+
+INFO:  		id:			1
+INFO:  		pathtype:		MergeJoin
+INFO:  		startup_cost:		89.615408
+INFO:  		total_cost:		96.990408
+INFO:  		is_sorted:		Yes
+INFO:  
+
+INFO:  
+INFO:  |===========================================================|
+
+
+INFO:  |===========	STANDARD_JOIN_SEARCH POINT	===========|
+INFO:  
+INFO:  	current point position:		4
+INFO:  	GROUP:			
+INFO:  			rel:	t1
+INFO:  			rel:	t2
+INFO:  			rel:	t3
+INFO:  	count of parametred:		0
+INFO:  	count of not paramtered:	1
+INFO:  
+INFO:  	PATH DATA FROM PATHLIST		
+INFO:  
+INFO:  		id:			0
+INFO:  		pathtype:		HashJoin
+INFO:  		startup_cost:		2.881250
+INFO:  		total_cost:		31.293750
+INFO:  		is_sorted:		No
+INFO:  
+
+INFO:  
+INFO:  |===========================================================|
+
+
+INFO:  |===========	STANDARD_JOIN_SEARCH POINT	===========|
+INFO:  
+INFO:  	current point position:		5
+INFO:  	GROUP:			
+INFO:  			rel:	t1
+INFO:  			rel:	t2
+INFO:  			rel:	t3
+INFO:  	count of parametred:		0
+INFO:  	count of not paramtered:	1
+INFO:  
+INFO:  	PATH DATA FROM PATHLIST		
+INFO:  
+INFO:  		id:			0
+INFO:  		pathtype:		HashJoin
+INFO:  		startup_cost:		2.881250
+INFO:  		total_cost:		31.293750
+INFO:  		is_sorted:		No
+INFO:  
+
+INFO:  
+INFO:  |===========================================================|
+
+
+                                 QUERY PLAN                                 
+----------------------------------------------------------------------------
+ Hash Join  (cost=2.88..31.29 rows=95 width=108)
+   Hash Cond: (t3.e = t1.a)
+   ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=2.69..2.69 rows=15 width=72)
+         ->  Hash Join  (cost=1.34..2.69 rows=15 width=72)
+               Hash Cond: (t1.a = t2.c)
+               ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=36)
+               ->  Hash  (cost=1.15..1.15 rows=15 width=36)
+                     ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=36)
+(9 rows)
+

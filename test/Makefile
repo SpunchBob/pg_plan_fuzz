@@ -10,7 +10,8 @@ REGRESS 		= 	pg_plan_fuzz 				\
 					seqscan_to_indexscan 		\
 					seqscan_to_indexonlyscan 	\
 					indexscan_to_seqscan		\
-					multitransforming_test 		
+					multitransforming_test 		\
+					dump_test
 
 PG_CONFIG 		= 	pg_config 
 PGXS 			:= 	$(shell $(PG_CONFIG) --pgxs)
