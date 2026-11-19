@@ -1018,6 +1018,8 @@ static RelOptInfo *pg_plan_fuzz_join_search (
         initial_rels
     );
 
+    pg_plan_fuzz_join_dump_choices(rel, root);
+
     return rel;
 }
 
@@ -1224,8 +1226,6 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
         sjinfo, 
         restrictlist
     );
-
-    pg_plan_fuzz_join_dump_choices(joinrel, root);
 
     if (!*is_system)
     {
