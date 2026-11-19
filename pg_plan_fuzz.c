@@ -123,8 +123,7 @@ bool current_enable_indexscan       = true;
 bool current_enable_indexonlyscan   = true;
 
 bool dump_choices                   = false;
-int  scan_point_pos                 = 1;
-int  join_point_pos                 = 1;
+int  point_pos                      = 1;
 
 // -----------------------------------------------------------------------------
 //                                      STRUCTS
@@ -315,7 +314,7 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
         elog(INFO, "");
         elog(INFO,
             "\tcurrent point position:\t\t%d", 
-            join_point_pos);
+            point_pos);
         
         elog(INFO,
             "\tGROUP:\t\t\t");
@@ -360,7 +359,7 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
 
         elog(INFO, "");
         elog(INFO, "|===========================================================|\n\n");
-        join_point_pos++;
+        point_pos++;
     }
 }
 
@@ -390,7 +389,7 @@ static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel, RangeTblE
 
         elog(INFO,
             "\tcurrent point position:\t\t%d", 
-            scan_point_pos);
+            point_pos);
        
         // See PG17 lsyscache.c : /src/backend/utils/cache/lsyscache.c  
 
@@ -428,7 +427,7 @@ static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel, RangeTblE
         }
 
         elog(INFO, "|===========================================================|\n\n");
-        scan_point_pos++;
+        point_pos++;
     }
 }
 
@@ -857,8 +856,7 @@ static void pg_plan_fuzz_clear()
     list_of_joinrelids      = NIL;
     *is_system              = false;
     join_cursor             = 0;
-    scan_point_pos          = 1;
-    join_point_pos          = 1;
+    point_pos               = 1;
     pg_plan_fuzz_clear_join_enables();
     pg_plan_fuzz_clear_scan_enables();
 }
