@@ -133,13 +133,12 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
 	 * relations.
 	 */
 	root->join_rel_level = (List **) palloc0((levels_needed + 1) * sizeof(List *));
-
-	root->join_rel_level[1] = initial_rels;
+	
+    root->join_rel_level[1] = initial_rels;
 
 	for (lev = 2; lev <= levels_needed; lev++)
 	{
 		ListCell   *lc;
-
 		/*
 		 * Determine all possible pairs of relations to be joined at this
 		 * level, and build paths for making each one from every available
@@ -172,6 +171,8 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
 			 */
 			if (!bms_equal(rel->relids, root->all_query_rels))
 				generate_useful_gather_paths(root, rel, false);
+
+            pg_plan_fuzz_join_dump_choices(rel, root);
 
 			/* Find and save the cheapest paths for this rel */
 			set_cheapest(rel);

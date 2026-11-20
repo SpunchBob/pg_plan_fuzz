@@ -293,15 +293,18 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
         int         not_parametred;
         int         id;
         int         x;
+        int         smallest_id;
         ListCell    *lc;
         Path        *path;
+        Path        *smallest_path;
         RangeTblEntry *rte;
 
+        smallest_id     = 0;
         x               = -1;
         parametred      = 0; 
         not_parametred  = 0;
         id              = 0;
-
+        smallest_path = (Path*)list_nth(rel->pathlist, 0);
 
         foreach (lc, rel->pathlist) 
         {
@@ -352,10 +355,29 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
             elog(INFO, "\t\ttotal_cost:\t\t%f", path->total_cost);
             elog(INFO, "\t\tis_sorted:\t\t%s",
                     path->pathkeys != NIL ? "Yes" : "No");
+            elog(INFO, "\t\tis_parametered:\t\t%s", 
+                    path->param_info == NULL ? "No" : "Yes");
+
+            id++;
+            if (smallest_path->total_cost > path->total_cost)
+            {
+                smallest_path = path;
+                smallest_id   = id;
+            }
 
             elog(INFO, "\n");
-            id++;
         }
+
+        elog(INFO, "\tSMALLEST PATH\t\t");
+
+        elog(INFO, "");
+
+        elog(INFO, "\t\tsmallest_id:\t\t%d", smallest_id);
+        
+        elog(INFO, "\t\tpathtype:\t\t%s", 
+                pg_plan_fuzz_node_type_to_str(smallest_path->pathtype));
+
+        elog(INFO, "\t\ttotal_cost:\t\t%f", smallest_path->total_cost);
 
         elog(INFO, "");
         elog(INFO, "|===========================================================|\n\n");
@@ -370,12 +392,17 @@ static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel, RangeTblE
         int         parametred;
         int         not_parametred;
         int         id;
+        int         smallest_id;
         ListCell    *lc;
         Path        *path;
-        
-        parametred = 0; 
-        not_parametred = 0;
-        id = 0;
+        Path        *smallest_path;
+    
+        smallest_id     = 0;
+        parametred      = 0; 
+        not_parametred  = 0;
+        id              = 0;
+
+        smallest_path = (Path*)list_nth(rel->pathlist, 0);
 
         foreach (lc, rel->pathlist) 
         {
@@ -421,10 +448,31 @@ static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel, RangeTblE
             elog(INFO, "\t\ttotal_cost:\t\t%f", path->total_cost);
             elog(INFO, "\t\tis_sorted:\t\t%s",
                     path->pathkeys != NIL ? "Yes" : "No");
-
+            elog(INFO, "\t\tis_parametered:\t\t%s", 
+                    path->param_info == NULL ? "No" : "Yes");
             elog(INFO, "\n");
+
             id++;
+            
+            if (smallest_path->total_cost > path->total_cost)
+            {
+                smallest_path = path;
+                smallest_id = id;
+            }
         }
+
+        elog(INFO, "\tSMALLEST PATH\t\t");
+
+        elog(INFO, "");
+        
+        elog(INFO, "\t\tsmallest_id:\t\t%d", smallest_id);
+
+        elog(INFO, "\t\tpathtype:\t\t%s", 
+                pg_plan_fuzz_node_type_to_str(smallest_path->pathtype));
+
+        elog(INFO, "\t\ttotal_cost:\t\t%f", smallest_path->total_cost);
+
+        elog(INFO, "");
 
         elog(INFO, "|===========================================================|\n\n");
         point_pos++;
@@ -1015,8 +1063,6 @@ static RelOptInfo *pg_plan_fuzz_join_search (
         levels_needed,
         initial_rels
     );
-
-    pg_plan_fuzz_join_dump_choices(rel, root);
 
     return rel;
 }
