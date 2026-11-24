@@ -45,6 +45,7 @@
 #include "utils/rel.h"
 #include "utils/snapmgr.h"
 #include "utils/syscache.h"
+#include "utils/elog.h"
 
 #include "catalog/pg_class.h"
 
@@ -206,6 +207,8 @@ static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel,
 static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel, 
                                                       PlannerInfo* root); 
 
+static void         pg_plan_fuzz_vec_exception_handler();
+
 // This is mutator procedure, that i will attach to the
 // add_paths_to_joinrel wrapper and pg_plan_fuzz_set_rel_pathlist hook 
 // It will call pg_plan_fuzz_scan_operator / pg_plan_fuzz_scan_coster and
@@ -283,6 +286,37 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
 //
+
+static void         pg_plan_fuzz_vec_exception_handler() 
+{
+
+/*----------
+ * New-style error reporting API: to be used in this way:
+ *		ereport(ERROR,
+ *				errcode(ERRCODE_UNDEFINED_CURSOR),
+ *				errmsg("portal \"%s\" not found", stmt->portalname),
+ *				... other errxxx() fields as needed ...);
+ */
+
+    int idx;
+    idx = 0;
+
+    if (strlen(vector) % 4 != 0)
+        ereport(ERROR,
+                errmsg("Vector format error: Incorrect size"));
+
+    while (vector[idx] != '\0') 
+    {
+        bool result = ((int)vector[idx] >= 48 && (int)vector[idx] <= 57) ||
+                      ((int)vector[idx] >= 65 && (int)vector[idx] <= 70) ||
+                      ((int)vector[idx] >= 97 && (int)vector[idx] <= 102);
+       if (!result)
+           ereport(ERROR,
+                   errmsg("Vector format error: Incorrect not HEX value")
+                   );
+       idx++;
+    }
+}
 
 static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel, 
                                                       PlannerInfo* root) 
@@ -895,6 +929,8 @@ static void pg_plan_fuzz_post_parse_anlayze (
     JumbleState *jstate
 ) 
 {
+    
+
     current_enable_hashjoin = enable_hashjoin;
     current_enable_mergejoin = enable_mergejoin;
     current_enable_nestloop = enable_nestloop;
@@ -962,6 +998,9 @@ static void pg_plan_fuzz_set_rel_pathlist (
 ) 
 {
     bool is_vector_active;
+
+    pg_plan_fuzz_vec_exception_handler();
+
     is_vector_active = strcmp(vector, "000000000000") != 0 ?
         true : false;
 
