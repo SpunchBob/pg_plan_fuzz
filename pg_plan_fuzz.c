@@ -112,7 +112,6 @@ static bool join_pre_pass       = false;
 static bool join_post_pass      = false;
 
 static const int    MAX_JOIN_RECOURSE_LEVEL = 1000000;
-static bool         IS_VECTOR_HEALTY = true;
 
 PG_MODULE_MAGIC;
 void _PG_init (void);
@@ -319,8 +318,6 @@ static void         pg_plan_fuzz_vec_exception_handler(char* vector)
     idx = 0;
     vec_len = strlen(vector);
 
-    IS_VECTOR_HEALTY = false;
-
     if (vec_len % 4 != 0)
         ereport(ERROR,
                 errmsg("Vector format error: Length %d is not multiple of 4", vec_len));
@@ -337,8 +334,6 @@ static void         pg_plan_fuzz_vec_exception_handler(char* vector)
                    );
        idx++;
     }
-
-    IS_VECTOR_HEALTY = true;
 }
 
 static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel, 
@@ -784,7 +779,6 @@ static void pg_plan_fuzz_clear()
     *is_system              = false;
     join_cursor             = 0;
     point_pos               = 1;
-    IS_VECTOR_HEALTY        = true;
     pg_plan_fuzz_clear_join_enables();
     pg_plan_fuzz_clear_scan_enables();
 }
@@ -1022,10 +1016,6 @@ static void pg_plan_fuzz_set_rel_pathlist (
 ) 
 {
     bool is_vector_active;
-
-    if (!IS_VECTOR_HEALTY)
-        ereport(ERROR,
-                errmsg("Processing error: You try to process query with bad vector: &s",vector));
 
     is_vector_active = pg_plan_fuzz_is_vector_active();
     
