@@ -209,7 +209,7 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
 
 static void         pg_plan_fuzz_vec_exception_handler(char* vector);
 static bool         pg_plan_fuzz_is_vector_active();
-
+static char*        pg_plan_fuzz_slice(int slice_id);
 
 // This is mutator procedure, that i will attach to the
 // add_paths_to_joinrel wrapper and pg_plan_fuzz_set_rel_pathlist hook 
@@ -288,6 +288,31 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
 //
+
+static char*     pg_plan_fuzz_slice(int slice_id) 
+{
+    char * slice;
+    int step;
+    int start;
+    int end;
+    int slice_cur;
+
+    slice_cur = 0;
+
+    slice   = (char*)palloc0(5);
+
+    step    = 4;
+    start   = step * slice_id;
+    end     = start + step;
+
+    for (int idx = start; idx < end; idx++) 
+    {
+        slice[slice_cur] = vector[idx];    
+        slice_cur++;
+    } 
+
+    return slice;
+}
 
 static bool         pg_plan_fuzz_is_vector_active() 
 {
@@ -434,7 +459,6 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
 
         elog(INFO, "");
         elog(INFO, "|===========================================================|\n\n");
-        point_pos++;
     }
 }
 
@@ -528,7 +552,6 @@ static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel, RangeTblE
         elog(INFO, "");
 
         elog(INFO, "|===========================================================|\n\n");
-        point_pos++;
     }
 }
 
@@ -1029,6 +1052,25 @@ static void pg_plan_fuzz_set_rel_pathlist (
     if (scan_recourse_level_ == scan_recourse_level && !is_vector_active)
         pg_plan_fuzz_scan_operator();
 
+    if (is_vector_active) 
+    {
+        // Here we are will get a slice from vector and use it 
+        // If slice length is less then 4, it means, that there is 
+        // not match data in vector for current plan mutations
+        // Wrap it to ther procedure asap
+
+        char* slice = NULL;
+        slice = pg_plan_fuzz_slice(point_pos - 1);
+
+        if (strlen(slice) < 4) ereport(ERROR, 
+            errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
+                , point_pos, (int)(strlen(vector) / 4)));
+
+        // TODO: Reomvem now in ase of debugging
+
+        elog(INFO, "Slice of vector: %s", slice);
+    }
+
     if (logging_mode) 
     {
         elog (INFO, "Enable SeqScan:\t\t\t%s", 
@@ -1073,7 +1115,7 @@ static void pg_plan_fuzz_set_rel_pathlist (
         pg_plan_fuzz_scan_coster();
 
     scan_recourse_level_++;
-
+    point_pos++;
     pg_plan_fuzz_clear_scan_enables();
 }
 

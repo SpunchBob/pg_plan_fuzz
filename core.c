@@ -172,7 +172,29 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
 			if (!bms_equal(rel->relids, root->all_query_rels))
 				generate_useful_gather_paths(root, rel, false);
 
+            bool is_vector_active;
+            is_vector_active = pg_plan_fuzz_is_vector_active();
+
+            if (is_vector_active) 
+            {
+                // Here we are will get a slice from vector and use it 
+                // If slice length is less then 4, it means, that there is 
+                // not match data in vector for current plan mutations
+                // Wrap it to ther procedure asap
+
+                char* slice = NULL;
+                slice = pg_plan_fuzz_slice(point_pos - 1);
+
+                if (strlen(slice) < 4) ereport(ERROR, 
+                    errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
+                        , point_pos, (int)(strlen(vector) / 4)));
+
+                // TODO: Reomvem now in ase of debugging
+
+                elog(INFO, "Slice of vector: %s", slice);
+            }
             pg_plan_fuzz_join_dump_choices(rel, root);
+            point_pos++;
 
 			/* Find and save the cheapest paths for this rel */
 			set_cheapest(rel);
