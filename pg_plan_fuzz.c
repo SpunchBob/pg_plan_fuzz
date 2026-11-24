@@ -1156,7 +1156,7 @@ static void pg_plan_fuzz_ExecutorEnd (
 {
     if (prev_ExecutorEnd)   prev_ExecutorEnd(queryDesc);
     else                    standard_ExecutorEnd(queryDesc);
-
+    point_pos = 1;
 }
 
 static void
