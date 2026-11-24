@@ -11,7 +11,8 @@ REGRESS 		= 	pg_plan_fuzz 				\
 					seqscan_to_indexonlyscan 	\
 					indexscan_to_seqscan		\
 					multitransforming_test 		\
-					dump_test
+					dump_test					\
+					format_exceptions_vector_test
 
 PG_CONFIG 		= 	pg_config 
 PGXS 			:= 	$(shell $(PG_CONFIG) --pgxs)
