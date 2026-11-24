@@ -961,6 +961,10 @@ static void pg_plan_fuzz_set_rel_pathlist (
     RangeTblEntry   *rte
 ) 
 {
+    bool is_vector_active;
+    is_vector_active = strcmp(vector, "000000000000") != 0 ?
+        true : false;
+
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
         rel,
@@ -968,7 +972,7 @@ static void pg_plan_fuzz_set_rel_pathlist (
         rte
     );
     
-    if (scan_recourse_level_ == scan_recourse_level)
+    if (scan_recourse_level_ == scan_recourse_level && !is_vector_active)
         pg_plan_fuzz_scan_operator();
 
     if (logging_mode) 
@@ -1011,7 +1015,7 @@ static void pg_plan_fuzz_set_rel_pathlist (
         elog(INFO, "\n");
     }
 
-    if (scan_recourse_level_ == scan_recourse_level)
+    if (scan_recourse_level_ == scan_recourse_level && !is_vector_active)
         pg_plan_fuzz_scan_coster();
 
     scan_recourse_level_++;
@@ -1069,16 +1073,25 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
 							 List *restrictlist)
 {
 	int				save_nestlevel;
+    bool            is_vector_active;
+    
     save_nestlevel = NewGUCNestLevel();
+    is_vector_active = strcmp(vector, "000000000000") != 0 ? 
+        true : false;
 
     if (join_recourse_level_ == 0) join_recourse_level_ = 1;
 
     if (!*is_system)
     {
-        pg_plan_fuzz_join_set_relids(
-            outerrel->relids,
-            innerrel->relids
-        );
+        if (!is_vector_active) 
+        {
+            pg_plan_fuzz_join_set_relids(
+                outerrel->relids,
+                innerrel->relids
+            );
+
+            pg_plan_fuzz_join_transformator();
+        }
     }
     
     add_paths_to_joinrel(
@@ -1095,6 +1108,8 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
     {
         current_join_pathlist = joinrel->pathlist;
         
+        if (!is_vector_active) pg_plan_fuzz_join_coster();
+
         if (logging_mode) 
         {
             ListCell *lc;
