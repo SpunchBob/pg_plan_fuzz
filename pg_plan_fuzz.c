@@ -209,6 +209,8 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
                                                       PlannerInfo* root); 
 
 static void         pg_plan_fuzz_vec_exception_handler(char* vector);
+static bool         pg_plan_fuzz_is_vector_active();
+
 
 // This is mutator procedure, that i will attach to the
 // add_paths_to_joinrel wrapper and pg_plan_fuzz_set_rel_pathlist hook 
@@ -288,6 +290,18 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 // -----------------------------------------------------------------------------
 //
 
+static bool         pg_plan_fuzz_is_vector_active() 
+{
+    int idx;
+    idx = 0;
+    while (vector[idx] != '\0') 
+    {
+        if (vector[idx] != '0')
+            return true;
+        idx++;
+    }
+    return false;
+}
 
 static void         pg_plan_fuzz_vec_exception_handler(char* vector) 
 {
@@ -1009,13 +1023,12 @@ static void pg_plan_fuzz_set_rel_pathlist (
 {
     bool is_vector_active;
 
-    is_vector_active = strcmp(vector, "000000000000") != 0 ?
-        false : true;
-
-    if (is_vector_active && !IS_VECTOR_HEALTY)
+    if (!IS_VECTOR_HEALTY)
         ereport(ERROR,
                 errmsg("Processing error: You try to process query with bad vector: &s",vector));
 
+    is_vector_active = pg_plan_fuzz_is_vector_active();
+    
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
         rel,
@@ -1127,8 +1140,7 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
     bool            is_vector_active;
     
     save_nestlevel = NewGUCNestLevel();
-    is_vector_active = strcmp(vector, "000000000000") != 0 ? 
-        true : false;
+    is_vector_active = pg_plan_fuzz_is_vector_active();
 
     if (join_recourse_level_ == 0) join_recourse_level_ = 1;
 
