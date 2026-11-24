@@ -299,11 +299,13 @@ static void         pg_plan_fuzz_vec_exception_handler()
  */
 
     int idx;
+    int vec_len;
     idx = 0;
+    vec_len = strlen(vector);
 
-    if (strlen(vector) % 4 != 0)
+    if (vec_len % 4 != 0)
         ereport(ERROR,
-                errmsg("Vector format error: Incorrect size"));
+                errmsg("Vector format error: Length %d is not multiple of 4", vec_len));
 
     while (vector[idx] != '\0') 
     {
@@ -312,7 +314,8 @@ static void         pg_plan_fuzz_vec_exception_handler()
                       ((int)vector[idx] >= 97 && (int)vector[idx] <= 102);
        if (!result)
            ereport(ERROR,
-                   errmsg("Vector format error: Incorrect not HEX value")
+           errmsg("Vector format error: Incorrect not HEX value at position: %d"
+               , idx)
                    );
        idx++;
     }
