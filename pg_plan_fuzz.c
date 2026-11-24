@@ -215,7 +215,6 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
 // which procedure we will use in case of different hook. So now i will use
 // same mechanism and pass position in mutator args.
 
-static void         MUTATOR                         (int pos);
 
 // Currently, i will use this function to setup values
 // In our bitvector. I mean, that fuzzer wil use this function,
@@ -478,185 +477,6 @@ static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel, RangeTblE
 
         elog(INFO, "|===========================================================|\n\n");
         point_pos++;
-    }
-}
-
-static void         MUTATOR (int pos) 
-{
-    const unsigned char hash_join_bounds[2]     = {1, 85};
-    const unsigned char merge_join_bounds[2]    = {85, 170};
-    const unsigned char nested_loop_bounds[2]   = {170, 255};
-    
-    if (JOIN_GROUPS_AMOUNT != 0) 
-    {
-        join_prop        = (int)(100 / JOIN_GROUPS_AMOUNT);
-        join_start_pos   = 0;
-        join_end_pos     = join_start_pos + join_prop;
-    } 
-    else return;                 
-    if (join_cursor == 0) join_cursor = join_start_pos;
-    switch (pos) 
-    {
-        case JOIN_PRE: 
-        {
-            // check vector and do stuff with join transformation
-            // ok, in join mutation we can have a lot of different
-            // relatioin groups, and some of theme will go through
-            // optimizer and get into plan. actualy, we can specify
-            // relation group, that we can pass to optimizer, but in 
-            // case off experiment i mentioned to get plans with 
-            // different structure, so i think i will not implement 
-            // this system now.
-            //
-            // Let's just smash all vector to the number of relation groups,
-            // and setup join types bounds to setup conditions for 
-            // transformations.
-            //
-            // I think we can do smh like 255 / 3 parts ( HJ, MJ and NL ).
-            // so it is gonna be like 85, 170 and 255
-            
-            // I make this bounds as const arrays of size 2, Actually
-            // we can create smh of pair type 
-            //
-            // Than lets got through all array. We need to do smh like 
-            // 100 / number_of_relations and cut floating point.
-            
-            // So,  prop - is a one-item size, like an one proportion
-            //      start_pos is position, that i calculate like current join
-            //      level multipliedby one proportion
-            //      end_pos is start_pos plus proportion
-
-            unsigned char vec_bit_val;
-            vec_bit_val = VECTOR[join_cursor];
-            if (hash_join_bounds[0] <= vec_bit_val 
-                    && 
-                hash_join_bounds[1] >= vec_bit_val) 
-            {
-               pg_plan_fuzz_set_config_option(
-                    "enable_hashjoin", "on"
-                       );
-               pg_plan_fuzz_set_config_option(
-                    "enable_mergejoin", "off"
-                       );
-               pg_plan_fuzz_set_config_option(
-                    "enable_nestloop", "off"
-                       );
-            }
-
-            if (merge_join_bounds[0] <= vec_bit_val
-                    &&
-                merge_join_bounds[1] >= vec_bit_val) 
-            {
-               pg_plan_fuzz_set_config_option(
-                    "enable_hashjoin", "off"
-                       );
-               pg_plan_fuzz_set_config_option(
-                    "enable_mergejoin", "on"
-                       );
-               pg_plan_fuzz_set_config_option(
-                    "enable_nestloop", "off"
-                       );
-            }
-
-            if (nested_loop_bounds[0] <= vec_bit_val
-                    &&
-                nested_loop_bounds[1] >= vec_bit_val) 
-            {
-               pg_plan_fuzz_set_config_option(
-                    "enable_hashjoin", "off"
-                       );
-               pg_plan_fuzz_set_config_option(
-                    "enable_mergejoin", "off"
-                       );
-               pg_plan_fuzz_set_config_option(
-                    "enable_nestloop", "on"
-                       );
-            }
-            join_pre_pass = true;
-            break;   
-        }
-        case JOIN_POST: 
-        {
-            unsigned char vec_bit_val;
-            vec_bit_val = VECTOR[join_cursor];
-            if (hash_join_bounds[0] <= vec_bit_val 
-                    && 
-                hash_join_bounds[1] >= vec_bit_val) 
-            {
-                ListCell    *lc;
-                Path        *path;
-    
-                foreach (lc, current_join_pathlist) 
-                {
-                    path = (Path*)lfirst(lc);
-                    if (join_recourse_level_ == join_recourse_level) 
-                    {
-                        if (path->pathtype == T_HashJoin) 
-                        {
-                            path->total_cost    = YES;
-                        }     
-                        else 
-                        {
-                            path->total_cost    = NO;
-                        }
-                    }               
-                }
-            }
-
-            if (merge_join_bounds[0] <= vec_bit_val
-                    &&
-                merge_join_bounds[1] >= vec_bit_val) 
-            {
-                ListCell    *lc;
-                Path        *path;
-    
-                foreach (lc, current_join_pathlist) 
-                {
-                    path = (Path*)lfirst(lc);
-                    if (join_recourse_level_ == join_recourse_level) 
-                    {
-                        if (path->pathtype == T_MergeJoin) 
-                        {
-                            path->total_cost    = YES;
-                        }     
-                        else 
-                        {
-                            path->total_cost    = NO;
-                        }
-                    }               
-                }
-            }
-
-            if (nested_loop_bounds[0] <= vec_bit_val
-                    &&
-                nested_loop_bounds[1] >= vec_bit_val) 
-            {
-                ListCell    *lc;
-                Path        *path;
-    
-                foreach (lc, current_join_pathlist) 
-                {
-                    path = (Path*)lfirst(lc);
-                    if (join_recourse_level_ == join_recourse_level) 
-                    {
-                        if (path->pathtype == T_NestLoop) 
-                        {
-                            path->total_cost    = YES;
-                        }     
-                        else 
-                        {
-                            path->total_cost    = NO;
-                        }
-                    }               
-                }
-            }
-            join_post_pass = true;
-            break;   
-        }
-        case SCAN_PRE:
-        {
-            // check vector and do stuff with scan transformation
-        }
     }
 }
 
@@ -1291,8 +1111,6 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
             }
         }
         
-        MUTATOR(JOIN_POST);
- 
         if (join_pre_pass && join_post_pass) join_cursor += join_prop;
     }
     
