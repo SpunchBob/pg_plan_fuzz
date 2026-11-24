@@ -207,7 +207,7 @@ static void         pg_plan_fuzz_scan_dump_choices   (RelOptInfo *rel,
 static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel, 
                                                       PlannerInfo* root); 
 
-static void         pg_plan_fuzz_vec_exception_handler();
+static void         pg_plan_fuzz_vec_exception_handler(char* vector);
 
 // This is mutator procedure, that i will attach to the
 // add_paths_to_joinrel wrapper and pg_plan_fuzz_set_rel_pathlist hook 
@@ -287,7 +287,8 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 // -----------------------------------------------------------------------------
 //
 
-static void         pg_plan_fuzz_vec_exception_handler() 
+
+static void         pg_plan_fuzz_vec_exception_handler(char* vector) 
 {
 
 /*----------
@@ -1002,8 +1003,6 @@ static void pg_plan_fuzz_set_rel_pathlist (
 {
     bool is_vector_active;
 
-    pg_plan_fuzz_vec_exception_handler();
-
     is_vector_active = strcmp(vector, "000000000000") != 0 ?
         true : false;
 
@@ -1174,6 +1173,16 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
     AtEOXact_GUC(false, save_nestlevel);
 }
 
+static bool  pg_plan_fuzz_vector_string_check_hook (
+        char **newval, 
+        void **extra, 
+        GucSource source
+        ) 
+{
+    pg_plan_fuzz_vec_exception_handler(*newval);    
+    return true; 
+}
+
 void _PG_init (void) 
 {
     elog (INFO, "-----------------------------------------------------------------------------");
@@ -1337,7 +1346,7 @@ void _PG_init (void)
         "000000000000",
         PGC_USERSET,
         0,
-        NULL,
+        pg_plan_fuzz_vector_string_check_hook,
         NULL,
         NULL
     );
