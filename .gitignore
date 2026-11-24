@@ -7,3 +7,7 @@ vim-clang/
 *.o
 *.so
 
+tags
+
+test/regression.diffs
+test/regression.out
