@@ -123,6 +123,8 @@ bool current_enable_indexscan       = true;
 bool current_enable_indexonlyscan   = true;
 
 bool dump_choices                   = false;
+
+char* vector                        = NULL;
 int  point_pos                      = 1;
 
 // -----------------------------------------------------------------------------
@@ -1257,8 +1259,6 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
             outerrel->relids,
             innerrel->relids
         );
-
-        MUTATOR(JOIN_PRE);
     }
     
     add_paths_to_joinrel(
@@ -1447,6 +1447,19 @@ void _PG_init (void)
         0,
         0,
         MAX_JOIN_RECOURSE_LEVEL,
+        PGC_USERSET,
+        0,
+        NULL,
+        NULL,
+        NULL
+    );
+
+    DefineCustomStringVariable(
+        "pg_plan_fuzz.vector",
+        "pg_plan_fuzz vector",
+        "Vector for plan manipulations",
+        &vector,
+        "000000000000",
         PGC_USERSET,
         0,
         NULL,
