@@ -1,5 +1,4 @@
 # Postgres Plan Fuzzing Extension 
----
 
 `pg_plan_fuzz` - is a Plan Fuzzing extension for **PostgreSQL 17**, which gives you ablitiy to generate different plans.
 Postgres Plan Fuzzing Extension uses optimizer hook and wrapers of PostgreSQL 17 planner pipeline functions to change 
