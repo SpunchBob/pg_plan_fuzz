@@ -62,55 +62,6 @@
 #define NO                      100.00
 #define YES                     0.0001
 
-#define SET_BITVECTOR_VALUE                                             \
-do                                                                      \
-{                                                                       \
-                                                                        \
-    int             bit_idx     = PG_GETARG_INT32(0);                   \
-    unsigned char   bit         = (unsigned char)PG_GETARG_INT32(1);    \
-                                                                        \
-    VECTOR[bit_idx]             = bit;                                  \
-                                                                        \
-    PG_RETURN_VOID();                                                   \
-} while (0);                                                            \ 
-
-static unsigned char VECTOR[100] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-};
-
-// I implement some global vars to handle
-// our amount of join / scan relation ( In case of therminology 
-// it is not correct to call it groups for scan, because in scan 
-// we have relation, not groups of relations, like in join, but i do not
-// think that this is very critical in current time ).
-
-static int JOIN_GROUPS_AMOUNT   = 0;
-static int SCAN_GROUPS_AMOUNT   = 0;
-
-static int join_prop            = 0;
-static int scan_prop            = 0;
-
-static int join_start_pos       = 0;
-static int join_end_pos         = 0;
-
-static int scan_start_pos       = 0;
-static int scan_end_pod         = 0;
-
-static int join_cursor          = 0;
-static int scan_cursor          = 0; 
-
-static bool join_pre_pass       = false;
-static bool join_post_pass      = false;
-
 static const int    MAX_JOIN_RECOURSE_LEVEL = 1000000;
 
 PG_MODULE_MAGIC;
@@ -135,8 +86,6 @@ int  point_pos                      = 1;
 static bool*        is_system;
 static int          join_recourse_level_    = 0;
 static int          scan_recourse_level_    = 1;
-static bool         multirelation           = false;
-static int          relations_counter       = 0;
 static List*        current_join_pathlist   = NIL;
 static List*        current_scan_pathlist   = NIL;
 static List*        list_of_joinrelids      = NIL;
@@ -178,7 +127,7 @@ static int          pg_plan_fuzz_set_config_option(
                     );
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
 
-static void         pg_plan_fuzz_join_operator       ();
+static void         pg_plan_fuzz_join_operator       (); 
 static void         pg_plan_fuzz_join_transformator  ();
 static void         pg_plan_fuzz_join_coster         ();
 static void         pg_plan_fuzz_join_set_relids     (Relids bms1, Relids bms2);
@@ -210,24 +159,6 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
 static void         pg_plan_fuzz_vec_exception_handler(char* vector);
 static bool         pg_plan_fuzz_is_vector_active();
 static char*        pg_plan_fuzz_slice(int slice_id);
-
-// This is mutator procedure, that i will attach to the
-// add_paths_to_joinrel wrapper and pg_plan_fuzz_set_rel_pathlist hook 
-// It will call pg_plan_fuzz_scan_operator / pg_plan_fuzz_scan_coster and
-// pg_plan_fuzz_join_operator / pg_plan_fuzz_join_coster to change current 
-// relations type. It will use bitvector data to change some specific 
-// relations. In th past, i had a pg_plan_fuzz_naviagtor method, that choose
-// which procedure we will use in case of different hook. So now i will use
-// same mechanism and pass position in mutator args.
-
-
-// Currently, i will use this function to setup values
-// In our bitvector. I mean, that fuzzer wil use this function,
-// to change data, that will go thtough the postgresql pipeline
-
-PG_FUNCTION_INFO_V1(pg_plan_fuzz_set_bitvector_value);
-Datum pg_plan_fuzz_set_bitvector_value(PG_FUNCTION_ARGS) 
-{SET_BITVECTOR_VALUE} 
 
 // -----------------------------------------------------------------------------
 //                          CORE STUFF - DECLARATIONS
@@ -795,12 +726,9 @@ static void pg_plan_fuzz_clear()
 {
     join_recourse_level_    = 0;
     scan_recourse_level_    = 1;
-    relations_counter       = 0;
-    multirelation           = false;
     current_joinrelids      = NULL;
     list_of_joinrelids      = NIL;
     *is_system              = false;
-    join_cursor             = 0;
     point_pos               = 1;
     pg_plan_fuzz_clear_join_enables();
     pg_plan_fuzz_clear_scan_enables();
@@ -1024,10 +952,7 @@ static PlannedStmt *pg_plan_fuzz_planner (
         elog (INFO, "-----------------------------------------------------------------------------");
     }
 
-    JOIN_GROUPS_AMOUNT = join_recourse_level_;
-
     pg_plan_fuzz_clear();
-
     return result;
 }
 
@@ -1153,9 +1078,6 @@ static void pg_plan_fuzz_relation_info_hook (
         inhparent,
         rel
     );
-
-    relations_counter++;
-    if (relations_counter > 2) multirelation = true;
 }
 
 static void pg_plan_fuzz_ExecutorEnd (
@@ -1228,8 +1150,6 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
                 );
             }
         }
-        
-        if (join_pre_pass && join_post_pass) join_cursor += join_prop;
     }
     
     AtEOXact_GUC(false, save_nestlevel);

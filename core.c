@@ -114,7 +114,8 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
 {
 	int			lev;
 	RelOptInfo *rel;
-
+    // This is my suff 
+    bool is_vector_active;
 	/*
 	 * This function cannot be invoked recursively within any one planning
 	 * problem, so join_rel_level[] can't be in use already.
@@ -172,7 +173,6 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
 			if (!bms_equal(rel->relids, root->all_query_rels))
 				generate_useful_gather_paths(root, rel, false);
 
-            bool is_vector_active;
             is_vector_active = pg_plan_fuzz_is_vector_active();
 
             if (is_vector_active) 
