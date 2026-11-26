@@ -116,7 +116,36 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
 	RelOptInfo *rel;
     // This is my suff 
     bool is_vector_active;
-	/*
+    int current_type;
+	is_vector_active = pg_plan_fuzz_is_vector_active();    
+    
+    if (is_vector_active) 
+    {
+        // Here we are will get a slice from vector and use it 
+        // If slice length is less then 4, it means, that there is 
+        // not match data in vector for current plan mutations
+        // Wrap it to ther procedure asap
+	    char* slice;
+	    int dec;
+        slice   = NULL;
+        dec	= 0;
+	    slice   = pg_plan_fuzz_slice(point_pos - 1);
+        if (strlen(slice) < 4) 
+        {
+            // Clear every stuff like we do it in pg_plan_fuzz_set_rel_pathlist
+            // so it not cause problems
+            int buffer = point_pos;
+            pg_plan_fuzz_clear();
+            ereport(ERROR, 
+            errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
+                , buffer, (int)(strlen(vector) / 4)));
+        }
+	    dec = pg_plan_fuzz_hex_to_dec_string(slice);	
+        current_type = pg_plan_fuzz_get_join_type_by_val(dec);
+        pg_plan_fuzz_join_operator(current_type);
+	}
+
+    /*
 	 * This function cannot be invoked recursively within any one planning
 	 * problem, so join_rel_level[] can't be in use already.
 	 */
@@ -136,7 +165,7 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
 	root->join_rel_level = (List **) palloc0((levels_needed + 1) * sizeof(List *));
 	
     root->join_rel_level[1] = initial_rels;
-
+    
 	for (lev = 2; lev <= levels_needed; lev++)
 	{
 		ListCell   *lc;
@@ -173,33 +202,9 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
 			if (!bms_equal(rel->relids, root->all_query_rels))
 				generate_useful_gather_paths(root, rel, false);
 
-            is_vector_active = pg_plan_fuzz_is_vector_active();
-
             if (is_vector_active) 
-            {
-                // Here we are will get a slice from vector and use it 
-                // If slice length is less then 4, it means, that there is 
-                // not match data in vector for current plan mutations
-                // Wrap it to ther procedure asap
-		char* slice;
-		int dec;
-                slice   = NULL;
-                dec	= 0;
-		slice   = pg_plan_fuzz_slice(point_pos - 1);
-                if (strlen(slice) < 4) 
-                {
-                    // Clear every stuff like we do it in pg_plan_fuzz_set_rel_pathlist
-                    // so it not cause problems
-                    int buffer = point_pos;
-                    pg_plan_fuzz_clear();
-                    ereport(ERROR, 
-                    errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
-                        , buffer, (int)(strlen(vector) / 4)));
-                }
-                // TODO: Reomvem now in ase of debugging
-		dec = pg_plan_fuzz_hex_to_dec_string(slice);	
-                elog(INFO, "Slice of vector: %s", slice);
-            }
+                pg_plan_fuzz_join_coster(current_type);
+
             pg_plan_fuzz_join_dump_choices(rel, root);
             point_pos++;
 

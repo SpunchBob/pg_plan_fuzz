@@ -124,9 +124,9 @@ static int          pg_plan_fuzz_set_config_option(
                     );
 static const char*  pg_plan_fuzz_node_type_to_str    (int type);
 
-static void         pg_plan_fuzz_join_operator       (); 
+static void         pg_plan_fuzz_join_operator       (int type); 
 static void         pg_plan_fuzz_join_transformator  ();
-static void         pg_plan_fuzz_join_coster         ();
+static void         pg_plan_fuzz_join_coster         (int node_type);
 static void         pg_plan_fuzz_join_set_relids     (Relids bms1, Relids bms2);
 static void         pg_plan_fuzz_join_add_relids     ();
 
@@ -232,7 +232,12 @@ static int          pg_plan_fuzz_get_scan_type_by_val(int val)
 }
 
 
-static int          pg_plan_fuzz_get_join_type_by_val(int val);
+static int          pg_plan_fuzz_get_join_type_by_val(int val) 
+{
+    if (val > 0 && val <= 21845)        return T_HashJoin;
+    if (val > 21845 && val <= 43690)    return T_MergeJoin;
+    if (val > 43690)                    return T_NestLoop;
+}
 
 static int          pg_plan_fuzz_hex_to_dec_char(char c) 
 {
@@ -685,7 +690,7 @@ static void pg_plan_fuzz_join_set_relids(Relids bms1, Relids bms2)
     }
 }
 
-static void pg_plan_fuzz_join_coster() 
+static void pg_plan_fuzz_join_coster(int node_type) 
 {
     ListCell    *lc;
     Path        *path;
@@ -693,11 +698,14 @@ static void pg_plan_fuzz_join_coster()
 
     type = 0;
 
-    if (force_hashjoin)     type = T_HashJoin;
-    if (force_mergejoin)    type = T_MergeJoin;
-    if (force_nestloop)     type = T_NestLoop;
-
-    if (type == 0)              return;
+    if (node_type != 0) { type = node_type; }
+    else 
+    {
+        if (force_hashjoin)     type = T_HashJoin;
+        if (force_mergejoin)    type = T_MergeJoin;
+        if (force_nestloop)     type = T_NestLoop;
+        if (type == 0)              return;
+    }
 
     foreach (lc, current_join_pathlist) 
     {
@@ -721,7 +729,7 @@ static void pg_plan_fuzz_join_transformator ()
 {
     if (join_recourse_level_ == join_recourse_level) 
     { 
-        pg_plan_fuzz_join_operator();
+        pg_plan_fuzz_join_operator(0);
     }
 }
 
@@ -773,11 +781,24 @@ static void pg_plan_fuzz_clear_join_enables ()
         current_enable_nestloop ? "on" : "off");
 }
 
-static void pg_plan_fuzz_join_operator () 
+static void pg_plan_fuzz_join_operator (int type) 
 {
-    if (force_hashjoin)     pg_plan_fuzz_force_hashjoin(); 
-    if (force_mergejoin)    pg_plan_fuzz_force_mergejoin();
-    if (force_nestloop)     pg_plan_fuzz_force_nestloop();
+    if (type != 0) 
+    {
+        switch (type) 
+        {
+            case T_HashJoin:    { pg_plan_fuzz_force_hashjoin(); break;  }
+            case T_MergeJoin:   { pg_plan_fuzz_force_mergejoin(); break; }
+            case T_NestLoop:  { pg_plan_fuzz_force_nestloop(); break; }
+            default: break;
+        } 
+    }
+    else 
+    {
+        if (force_hashjoin)     pg_plan_fuzz_force_hashjoin(); 
+        if (force_mergejoin)    pg_plan_fuzz_force_mergejoin();
+        if (force_nestloop)     pg_plan_fuzz_force_nestloop();
+    }
 }
 
 static void pg_plan_fuzz_init () 
@@ -1210,7 +1231,7 @@ add_paths_to_joinrel_wrapper(PlannerInfo *root,
     {
         current_join_pathlist = joinrel->pathlist;
         
-        if (!is_vector_active) pg_plan_fuzz_join_coster();
+        if (!is_vector_active) pg_plan_fuzz_join_coster(0);
 
         if (logging_mode) 
         {
