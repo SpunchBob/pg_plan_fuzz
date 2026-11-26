@@ -286,8 +286,7 @@ static void         pg_plan_fuzz_vec_exception_handler(char* vector)
        if (!result)
            ereport(ERROR,
            errmsg("Vector format error: Incorrect not HEX value at position: %d"
-               , idx)
-                   );
+               , idx));
        idx++;
     }
 }
@@ -298,15 +297,15 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
 
     if (dump_choices) 
     {
-        int         parametred;
-        int         not_parametred;
-        int         id;
-        int         x;
-        int         smallest_id;
-        ListCell    *lc;
-        Path        *path;
-        Path        *smallest_path;
-        RangeTblEntry *rte;
+        int             parametred;
+        int             not_parametred;
+        int             id;
+        int             x;
+        int             smallest_id;
+        ListCell        *lc;
+        Path            *path;
+        Path            *smallest_path;
+        RangeTblEntry   *rte;
 
         smallest_id     = 0;
         x               = -1;
@@ -898,11 +897,9 @@ static void pg_plan_fuzz_post_parse_anlayze (
     JumbleState *jstate
 ) 
 {
-    
-
-    current_enable_hashjoin = enable_hashjoin;
-    current_enable_mergejoin = enable_mergejoin;
-    current_enable_nestloop = enable_nestloop;
+    current_enable_hashjoin         = enable_hashjoin;
+    current_enable_mergejoin        = enable_mergejoin;
+    current_enable_nestloop         = enable_nestloop;
 
     current_enable_seqscan          = enable_seqscan;
     current_enable_indexscan        = enable_indexscan;
