@@ -181,25 +181,23 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
                 // If slice length is less then 4, it means, that there is 
                 // not match data in vector for current plan mutations
                 // Wrap it to ther procedure asap
-
-                char* slice = NULL;
-                slice = pg_plan_fuzz_slice(point_pos - 1);
-
+		char* slice;
+		int dec;
+                slice   = NULL;
+                dec	= 0;
+		slice   = pg_plan_fuzz_slice(point_pos - 1);
                 if (strlen(slice) < 4) 
                 {
                     // Clear every stuff like we do it in pg_plan_fuzz_set_rel_pathlist
                     // so it not cause problems
-
                     int buffer = point_pos;
-
                     pg_plan_fuzz_clear();
-
                     ereport(ERROR, 
                     errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
                         , buffer, (int)(strlen(vector) / 4)));
                 }
                 // TODO: Reomvem now in ase of debugging
-
+		dec = pg_plan_fuzz_hex_to_dec_string(slice);	
                 elog(INFO, "Slice of vector: %s", slice);
             }
             pg_plan_fuzz_join_dump_choices(rel, root);

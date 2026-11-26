@@ -3,6 +3,7 @@
 #include "catalog/catalog.h"
 #include <stdbool.h>
 #include <string.h>
+#include <math.h>
 
 #include "nodes/nodes.h"
 #include "nodes/pathnodes.h"
@@ -55,10 +56,6 @@
 #include "plpgsql.h"
 #include "fmgr.h"
 
-#define JOIN_PRE                0x161
-#define JOIN_POST               0x162    
-#define SCAN_PRE                0x321
-#define SCAN_POST               0x322
 #define NO                      100.00
 #define YES                     0.0001
 
@@ -133,8 +130,8 @@ static void         pg_plan_fuzz_join_coster         ();
 static void         pg_plan_fuzz_join_set_relids     (Relids bms1, Relids bms2);
 static void         pg_plan_fuzz_join_add_relids     ();
 
-static void         pg_plan_fuzz_scan_operator       ();
-static void         pg_plan_fuzz_scan_coster         ();
+static void         pg_plan_fuzz_scan_operator       (int type);
+static void         pg_plan_fuzz_scan_coster         (int node_type);
 
 static void         pg_plan_fuzz_check_system_table  (Oid relationObjectId);
 static void         pg_plan_fuzz_clear               ();
@@ -159,6 +156,11 @@ static void         pg_plan_fuzz_join_dump_choices   (RelOptInfo *rel,
 static void         pg_plan_fuzz_vec_exception_handler(char* vector);
 static bool         pg_plan_fuzz_is_vector_active();
 static char*        pg_plan_fuzz_slice(int slice_id);
+
+static int          pg_plan_fuzz_hex_to_dec_char(char c);
+static int          pg_plan_fuzz_hex_to_dec_string(char* str);
+static int          pg_plan_fuzz_get_scan_type_by_val(int val);
+static int          pg_plan_fuzz_get_join_type_by_val(int val);
 
 // -----------------------------------------------------------------------------
 //                          CORE STUFF - DECLARATIONS
@@ -219,6 +221,58 @@ static RelOptInfo   *pg_plan_fuzz_make_join_rel     (
 //                          EXT. PROCEDURES - IMPLEMENTATIONS
 // -----------------------------------------------------------------------------
 //
+
+static int          pg_plan_fuzz_get_scan_type_by_val(int val) 
+{
+    if (val > 0 &&  val <= 16383)    return T_SeqScan;
+    if (val > 16383 && val <= 32766)    return T_IndexScan;
+    if (val > 32766 && val <= 49149)    return T_IndexOnlyScan;
+    if (val > 49149)                    return T_BitmapIndexScan;
+    return 0;
+}
+
+
+static int          pg_plan_fuzz_get_join_type_by_val(int val);
+
+static int          pg_plan_fuzz_hex_to_dec_char(char c) 
+{
+    switch (c) 
+    {
+        case '0': return 0;
+        case '1': return 1;
+        case '2': return 2;
+        case '3': return 3;
+        case '4': return 4;
+        case '5': return 5;
+        case '6': return 6;
+        case '7': return 7;
+        case '8': return 8;
+        case '9': return 9;
+        case 'a': return 10;
+        case 'b': return 11;
+        case 'c': return 12;
+        case 'd': return 13;
+        case 'e': return 14;
+        case 'f': return 15;
+        default : return 0;   
+    } return 0;
+}
+
+static int          pg_plan_fuzz_hex_to_dec_string(char* str) 
+{
+    int size;
+    int result;    
+
+    result = 0;
+    size = 4;
+    
+    for (int idx = size - 1; idx >= 0; idx--) 
+    {
+       result += pg_plan_fuzz_hex_to_dec_char(str[idx]) * pow(16, idx); 
+    }
+
+    return result;
+}
 
 static char*     pg_plan_fuzz_slice(int slice_id) 
 {
@@ -496,15 +550,29 @@ static void         pg_plan_fuzz_clear_scan_enables  ()
     pg_plan_fuzz_set_config_option("enable_bitmapscan", "on");
 } 
 
-static void         pg_plan_fuzz_scan_operator       () 
+static void         pg_plan_fuzz_scan_operator       (int type) 
 {
-    if (force_seqscan)          pg_plan_fuzz_force_seqscan();
-    if (force_indexscan)        pg_plan_fuzz_force_indexscan();
-    if (force_indexonlyscan)    pg_plan_fuzz_force_indexonlyscan();
-    if (force_bitmapscan)       pg_plan_fuzz_force_bitmapscan();
+    if (type != 0) 
+    {
+        switch ( type ) 
+        {
+            case T_SeqScan:         { pg_plan_fuzz_force_seqscan(); break; }
+            case T_IndexScan:       { pg_plan_fuzz_force_indexscan(); break; }
+            case T_IndexOnlyScan:   { pg_plan_fuzz_force_indexonlyscan(); break; }
+            case T_BitmapIndexScan: { pg_plan_fuzz_force_bitmapscan(); break; }
+            default: break;
+        }
+    }
+    else 
+    {
+        if (force_seqscan)          pg_plan_fuzz_force_seqscan();
+        if (force_indexscan)        pg_plan_fuzz_force_indexscan();
+        if (force_indexonlyscan)    pg_plan_fuzz_force_indexonlyscan();
+        if (force_bitmapscan)       pg_plan_fuzz_force_bitmapscan();
+    }
 }
 
-static void         pg_plan_fuzz_scan_coster         () 
+static void         pg_plan_fuzz_scan_coster         (int node_type) 
 {
     ListCell    *lc;
     Path        *path;
@@ -512,12 +580,16 @@ static void         pg_plan_fuzz_scan_coster         ()
 
     type = 0;
 
-    if (force_seqscan)          type = T_SeqScan;
-    if (force_indexscan)        type = T_IndexScan;
-    if (force_indexonlyscan)    type = T_IndexOnlyScan;
-    if (force_bitmapscan)       type = T_BitmapIndexScan;
+    if (node_type != 0) { type = node_type; }
+    else 
+    {
+        if (force_seqscan)          type = T_SeqScan;
+        if (force_indexscan)        type = T_IndexScan;
+        if (force_indexonlyscan)    type = T_IndexOnlyScan;
+        if (force_bitmapscan)       type = T_BitmapIndexScan;
 
-    if (!type) return;
+        if (!type) return;
+    }
 
     foreach (lc, current_scan_pathlist) 
     {
@@ -961,9 +1033,12 @@ static void pg_plan_fuzz_set_rel_pathlist (
 ) 
 {
     bool is_vector_active;
+    int choice;
+    int current_type;
 
     is_vector_active = pg_plan_fuzz_is_vector_active();
-    
+    choice = 0;    
+
     if (prev_set_rel_pathlist)  prev_set_rel_pathlist(
         root,
         rel,
@@ -972,7 +1047,7 @@ static void pg_plan_fuzz_set_rel_pathlist (
     );
     
     if (scan_recourse_level_ == scan_recourse_level && !is_vector_active)
-        pg_plan_fuzz_scan_operator();
+        pg_plan_fuzz_scan_operator(0);
 
     if (is_vector_active) 
     {
@@ -981,8 +1056,9 @@ static void pg_plan_fuzz_set_rel_pathlist (
         // not match data in vector for current plan mutations
         // Wrap it to ther procedure asap
 
-        char* slice = NULL;
-        slice = pg_plan_fuzz_slice(point_pos - 1);
+        char* slice     = NULL;
+        int dec         = 0;
+        slice           = pg_plan_fuzz_slice(point_pos - 1);
 
         if (strlen(slice) < 4) 
 	    { 
@@ -996,9 +1072,10 @@ static void pg_plan_fuzz_set_rel_pathlist (
             errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
                 , buffer, (int)(strlen(vector) / 4)));
         }
-	// TODO: Reomve, now in case of debugging
 
-        elog(INFO, "Slice of vector: %s", slice);
+        dec             = pg_plan_fuzz_hex_to_dec_string(slice);
+        current_type    = pg_plan_fuzz_get_scan_type_by_val(dec); 
+        pg_plan_fuzz_scan_operator(current_type);
     }
 
     if (logging_mode) 
@@ -1042,7 +1119,10 @@ static void pg_plan_fuzz_set_rel_pathlist (
     }
 
     if (scan_recourse_level_ == scan_recourse_level && !is_vector_active)
-        pg_plan_fuzz_scan_coster();
+        pg_plan_fuzz_scan_coster(0);
+
+    if (is_vector_active)
+        pg_plan_fuzz_scan_coster(current_type);
 
     scan_recourse_level_++;
     point_pos++;
