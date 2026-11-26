@@ -1062,11 +1062,19 @@ static void pg_plan_fuzz_set_rel_pathlist (
         char* slice = NULL;
         slice = pg_plan_fuzz_slice(point_pos - 1);
 
-        if (strlen(slice) < 4) ereport(ERROR, 
-            errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
-                , point_pos, (int)(strlen(vector) / 4)));
+        if (strlen(slice) < 4) 
+	    { 
+            // We need to clear all vals here, because ereport fully stops
+            // program exectuion, so we can not clear it in planner - pg_plan_fuz        
 
-        // TODO: Reomvem now in ase of debugging
+            int buffer = point_pos;
+    
+            pg_plan_fuzz_clear();
+            ereport(ERROR, 
+            errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
+                , buffer, (int)(strlen(vector) / 4)));
+        }
+	// TODO: Reomve, now in case of debugging
 
         elog(INFO, "Slice of vector: %s", slice);
     }

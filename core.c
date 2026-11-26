@@ -185,10 +185,19 @@ standard_join_search(PlannerInfo *root, int levels_needed, List *initial_rels)
                 char* slice = NULL;
                 slice = pg_plan_fuzz_slice(point_pos - 1);
 
-                if (strlen(slice) < 4) ereport(ERROR, 
-                    errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
-                        , point_pos, (int)(strlen(vector) / 4)));
+                if (strlen(slice) < 4) 
+                {
+                    // Clear every stuff like we do it in pg_plan_fuzz_set_rel_pathlist
+                    // so it not cause problems
 
+                    int buffer = point_pos;
+
+                    pg_plan_fuzz_clear();
+
+                    ereport(ERROR, 
+                    errmsg("Runtime error: Vector exhausted at point %d ( vector has %d values)"
+                        , buffer, (int)(strlen(vector) / 4)));
+                }
                 // TODO: Reomvem now in ase of debugging
 
                 elog(INFO, "Slice of vector: %s", slice);
