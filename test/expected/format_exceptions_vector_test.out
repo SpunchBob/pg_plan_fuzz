@@ -78,11 +78,35 @@ INFO:  -------------------------------------------------------------------------
 set pg_plan_fuzz.vector = "000";
 ERROR:  Vector format error: Length 3 is not multiple of 4
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
-ERROR:  Processing error: You try to process query with bad vector: &s
+                                 QUERY PLAN                                 
+----------------------------------------------------------------------------
+ Hash Join  (cost=2.88..31.29 rows=95 width=108)
+   Hash Cond: (t3.e = t1.a)
+   ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=2.69..2.69 rows=15 width=72)
+         ->  Hash Join  (cost=1.34..2.69 rows=15 width=72)
+               Hash Cond: (t1.a = t2.c)
+               ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=36)
+               ->  Hash  (cost=1.15..1.15 rows=15 width=36)
+                     ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=36)
+(9 rows)
+
 set pg_plan_fuzz.vector = "g000";
 ERROR:  Vector format error: Incorrect not HEX value at position: 0
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
-ERROR:  Processing error: You try to process query with bad vector: &s
+                                 QUERY PLAN                                 
+----------------------------------------------------------------------------
+ Hash Join  (cost=2.88..31.29 rows=95 width=108)
+   Hash Cond: (t3.e = t1.a)
+   ->  Seq Scan on t3  (cost=0.00..22.70 rows=1270 width=36)
+   ->  Hash  (cost=2.69..2.69 rows=15 width=72)
+         ->  Hash Join  (cost=1.34..2.69 rows=15 width=72)
+               Hash Cond: (t1.a = t2.c)
+               ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=36)
+               ->  Hash  (cost=1.15..1.15 rows=15 width=36)
+                     ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=36)
+(9 rows)
+
 set pg_plan_fuzz.vector = "000000000000";
 set pg_plan_fuzz.force_mergejoin = on;
 set pg_plan_fuzz.join_recourse_level = 1;
@@ -104,7 +128,54 @@ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 (12 rows)
 
 set pg_plan_fuzz.vector = "0000ffff0000";
+explain select * from t1 join t2 on t1.a = t2.c;
+INFO:  Slice of vector: 0000
+INFO:  Slice of vector: ffff
+INFO:  Slice of vector: 0000
+                           QUERY PLAN                           
+----------------------------------------------------------------
+ Hash Join  (cost=1.34..2.69 rows=15 width=72)
+   Hash Cond: (t1.a = t2.c)
+   ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=36)
+   ->  Hash  (cost=1.15..1.15 rows=15 width=36)
+         ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=36)
+(5 rows)
+
+set pg_plan_fuzz.vector = "1111ffff2222ffffeeeeffffbbbbb";
+ERROR:  Vector format error: Length 29 is not multiple of 4
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Slice of vector: 0000
+INFO:  Slice of vector: ffff
+INFO:  Slice of vector: 0000
+ERROR:  Runtime error: Vector exhausted at point 4 ( vector has 3 values)
+set pg_plan_fuzz.vector = "0000ffff0000";
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Slice of vector: 0000
+INFO:  Slice of vector: ffff
+INFO:  Slice of vector: 0000
+ERROR:  Runtime error: Vector exhausted at point 4 ( vector has 3 values)
+explain select * from t1 join t2 on t1.a = t2.c;
+INFO:  Slice of vector: 0000
+INFO:  Slice of vector: ffff
+INFO:  Slice of vector: 0000
+                           QUERY PLAN                           
+----------------------------------------------------------------
+ Hash Join  (cost=1.34..2.69 rows=15 width=72)
+   Hash Cond: (t1.a = t2.c)
+   ->  Seq Scan on t1  (cost=0.00..1.15 rows=15 width=36)
+   ->  Hash  (cost=1.15..1.15 rows=15 width=36)
+         ->  Seq Scan on t2  (cost=0.00..1.15 rows=15 width=36)
+(5 rows)
+
+set pg_plan_fuzz.vector = "1111ffff2222ffffeeeeffffbbbb";
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+INFO:  Slice of vector: 1111
+INFO:  Slice of vector: ffff
+INFO:  Slice of vector: 2222
+INFO:  Slice of vector: ffff
+INFO:  Slice of vector: eeee
+INFO:  Slice of vector: ffff
+INFO:  Slice of vector: bbbb
                                  QUERY PLAN                                 
 ----------------------------------------------------------------------------
  Hash Join  (cost=2.88..31.29 rows=95 width=108)

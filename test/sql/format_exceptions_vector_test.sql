@@ -98,4 +98,18 @@ explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
 
 set pg_plan_fuzz.vector = "0000ffff0000";
 
+explain select * from t1 join t2 on t1.a = t2.c;
+
+set pg_plan_fuzz.vector = "1111ffff2222ffffeeeeffffbbbbb";
+
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+
+set pg_plan_fuzz.vector = "0000ffff0000";
+
+explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
+
+explain select * from t1 join t2 on t1.a = t2.c;
+
+set pg_plan_fuzz.vector = "1111ffff2222ffffeeeeffffbbbb";
+
 explain select * from t1 join t2 on t1.a = t2.c join t3 on t2.c = t3.e;
